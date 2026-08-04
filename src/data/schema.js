@@ -5,18 +5,22 @@
    不是预先汇总好的数据，所以汇总成「项目」是在前端做的。
    ===================================================================== */
 
-export const TABLE_NAME = "dashboard_sales";
+export const TABLE_NAME = "ai_order";
 
 export const COLUMN_MAP = {
   order_no:       "order_no",
   order_date:     "order_date",     // timestamp
   customer_id:    "customer_id",
-  brand_name:     "brand_name",     // 当作 PRD 里的「项目 project」
+  brand_name:     "brand_name",     // ai_order 本身没有这一列，client.js 从 ai_market/ai_brand 拼上去
   market_id:      "market_id",      // 跟 expense_entry.market_id 对应，用来拆算 Ads Spent
   grand_total:    "grand_total",
   order_status:   "order_status",
   payment_status: "payment_status",
 };
+
+/** ai_order 没有 brand_name 列，要靠 market_id -> ai_market.brand_id -> ai_brand.name 拼出来 */
+export const MARKET_TABLE_NAME = "ai_market";
+export const BRAND_TABLE_NAME = "ai_brand";
 
 /** Orders / Sales 不计入这些状态的订单（小写比较，不分大小写） */
 export const EXCLUDED_ORDER_STATUSES = ["draft", "cancelled"];
@@ -31,7 +35,7 @@ export const VALID_PAYMENT_STATUSES = [];
    ADS SPEND — expense_entry 里 expense_type_id = Ads Spent 的行，
    按 market_id（= 项目）+ entry_date 汇总
 --------------------------------------------------------------------- */
-export const EXPENSE_TABLE_NAME = "expense_entry";
+export const EXPENSE_TABLE_NAME = "ai_expenses_entry";
 
 export const EXPENSE_COLUMN_MAP = {
   entry_date:      "entry_date",     // date

@@ -9,6 +9,8 @@ import { genDemoDataset } from "./demo.js";
 import {
   TABLE_NAME,
   COLUMN_MAP,
+  MARKET_TABLE_NAME,
+  BRAND_TABLE_NAME,
   EXCLUDED_ORDER_STATUSES,
   VALID_PAYMENT_STATUSES,
   EXPENSE_TABLE_NAME,
@@ -34,8 +36,9 @@ export async function fetchDashboardData(filters, { jitter = false } = {}) {
   const prevStart = new Date(startDate.getTime() - rangeMs);
   const prevStartDateStr = localDateStr(prevStart);
 
-  // 一次把当前 + 上一周期都拉回来，后面在内存里切开
-  const [rawRows, rawExpenseRows] = await Promise.all([
+  // 一次把当前 + 上一周期都拉回来，后面在内存里切开。
+  // market / brand 是小表（几十行），不用分页，直接一次查完。
+  const [rawRows, rawExpenseRows, marketRows, brandRows] = await Promise.all([
     fetchAllRows(() => {
       let q = supabaseClient
         .from(TABLE_NAME)
@@ -57,7 +60,21 @@ export async function fetchDashboardData(filters, { jitter = false } = {}) {
       .lte(EXPENSE_COLUMN_MAP.entry_date, filters.end)
       .order(EXPENSE_COLUMN_MAP.entry_date, { ascending: true }),
       EXPENSE_TABLE_NAME),
+
+    supabaseClient.from(MARKET_TABLE_NAME).select("id, brand_id")
+      .then(({ data, error }) => { if (error) throw new Error(`Supabase 查询失败（${MARKET_TABLE_NAME}）：${error.message}`); return data || []; }),
+    supabaseClient.from(BRAND_TABLE_NAME).select("id, name")
+      .then(({ data, error }) => { if (error) throw new Error(`Supabase 查询失败（${BRAND_TABLE_NAME}）：${error.message}`); return data || []; }),
   ]);
+
+  // market_id -> brand_name，拼进每一行 ai_order，后面的聚合逻辑就不用再关心这层
+  const brandNameById = Object.fromEntries(brandRows.map((b) => [b.id, b.name]));
+  const brandNameByMarket = Object.fromEntries(
+    marketRows.map((m) => [m.id, brandNameById[m.brand_id] || null])
+  );
+  for (const r of rawRows) {
+    r[COLUMN_MAP.brand_name] = brandNameByMarket[r[COLUMN_MAP.market_id]] || null;
+  }
 
   const rows = rawRows.filter((r) => {
     const status = (r[COLUMN_MAP.order_status] || "").toLowerCase();
