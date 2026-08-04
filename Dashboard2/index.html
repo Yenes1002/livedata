@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>CTG 巅峰购物嘉年华排行榜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0F1419; --card:#161C25; --card2:#1B222D; --border:#2A323F;
+    --gold:#E8A33D; --teal:#4FD1C5; --red:#E8555A; --text:#E9E7E1; --muted:#8B94A3; --dim:#5A6474;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;padding:32px 20px 80px;}
+  .wrap{max-width:1100px;margin:0 auto;}
+  header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;border-bottom:1px dashed var(--border);padding-bottom:20px;margin-bottom:20px;}
+  .title{font-family:'Fraunces',serif;font-weight:600;font-size:30px;letter-spacing:-0.5px;}
+  .title .eyebrow{display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;}
+  .range{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted);}
+  .status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);text-align:right;}
+  .status.live{color:var(--teal);} .status.err{color:var(--red);}
+  button.refresh{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 12px;border-radius:4px;cursor:pointer;margin-top:6px;letter-spacing:1px;}
+  button.refresh:hover{border-color:var(--gold);color:var(--gold);}
+
+  .assumptions{
+    background:rgba(232,163,61,0.06);border:1px solid var(--border);border-left:3px solid var(--gold);
+    border-radius:6px;padding:14px 18px;margin-bottom:28px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--muted);line-height:1.7;
+  }
+  .assumptions b{color:var(--gold);}
+
+  section{margin-bottom:34px;}
+  .sec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .sec-num{font-family:'IBM Plex Mono',monospace;color:var(--gold);font-size:13px;}
+  .sec-title{font-family:'Fraunces',serif;font-weight:600;font-size:19px;}
+  .sec-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);margin-left:auto;}
+  .verify-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--bg);background:var(--gold);padding:2px 8px;border-radius:3px;letter-spacing:1px;}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px 20px;}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dotted var(--border);font-family:'IBM Plex Mono',monospace;font-size:13px;gap:12px;}
+  .row:last-child{border-bottom:none;}
+  .row .label{color:var(--text);} .row .label .sub{color:var(--dim);font-size:11px;display:block;margin-top:2px;font-family:'Inter',sans-serif;}
+  .row .amount{font-weight:600;color:var(--text);white-space:nowrap;}
+  .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;margin-left:8px;}
+  .pill.up{background:rgba(79,209,197,0.12);color:var(--teal);} .pill.down{background:rgba(232,85,90,0.12);color:var(--red);}
+  .rank{display:inline-flex;width:20px;height:20px;align-items:center;justify-content:center;border:1px solid var(--gold);color:var(--gold);border-radius:50%;font-size:10px;margin-right:10px;flex-shrink:0;}
+
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+  @media(max-width:800px){.grid3{grid-template-columns:1fr;}}
+  .big-stat .value{font-family:'Fraunces',serif;font-size:28px;font-weight:600;color:var(--gold);margin:6px 0 2px;line-height:1.2;}
+  .big-stat .value .unit{font-size:14px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+  .big-stat .label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;}
+  .big-stat .detail{font-size:12px;color:var(--muted);margin-top:8px;}
+
+  .skeleton{height:16px;background:linear-gradient(90deg,var(--border) 25%,#333c48 37%,var(--border) 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite;border-radius:4px;margin:8px 0;}
+  @keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
+  .loading-msg{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);padding:6px 0;}
+  .error-box{border:1px solid var(--red);border-radius:6px;padding:14px 16px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--red);background:rgba(232,85,90,0.06);}
+  .error-box button{margin-top:8px;}
+
+  .verify-table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:12px;}
+  .verify-table th{text-align:left;color:var(--dim);font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:6px 10px;border-bottom:1px solid var(--border);}
+  .verify-table td{padding:8px 10px;border-bottom:1px dotted var(--border);}
+  .verify-table tr:last-child td{border-bottom:none;}
+  .verify-table td.amt{text-align:right;font-weight:600;}
+  .src-tag{font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--dim);border:1px solid var(--border);border-radius:3px;padding:1px 5px;margin-left:6px;}
+
+  .sql-toggle{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);cursor:pointer;margin-top:10px;display:inline-block;border-bottom:1px dotted var(--dim);}
+  .sql-box{display:none;background:#0B0F14;border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);white-space:pre-wrap;max-height:260px;overflow:auto;}
+  .sql-box.open{display:block;}
+
+  footer{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);margin-top:50px;letter-spacing:1px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title">
+      <span class="eyebrow">CTG 巅峰购物嘉年华</span>
+      排行榜 Dashboard
+    </div>
+    <div>
+      <div class="range" id="rangeLabel">活动: 1/8/2026 13:00 → 2/8/2026 13:00</div>
+      <div class="status" id="statusLabel">connecting to database…</div>
+      <button class="refresh" id="refreshBtn">↻ REFRESH ALL</button>
+    </div>
+  </header>
+
+  <div class="assumptions">
+    <b>计算逻辑摘要</b> — Valid Order: OXM1 = status='Checkout' · OXM2 = status IN ('Pending','Shipped')　│　
+    数据源分流: Skindae/Beyoute/Masternerve/URO360/Livact/Agepros/Kidsaie 的 2025 数据取 OXM1、2026 数据取 OXM2；其余所有 project 全部取 OXM1　│　
+    <b>KPI06 假设</b>：OXM1 系projects = 活动前有≥1张Checkout单才算Repeat；OXM2 系projects(7个特殊品牌) = 该客户在OXM2总共≥2张valid单(因OXM2无活动前历史数据)才算Repeat — 如与预期不符请告知调整
+  </div>
+
+  <section id="sec1">
+    <div class="sec-head"><span class="sec-num">KPI 01</span><span class="sec-title">2025 最高单日 vs 2026 活动 Sales</span><span class="sec-sub">Top 3 by Diff RM</span></div>
+    <div class="card" id="sec1-body"><div class="loading-msg">▸ 等待中…</div></div>
+  </section>
+
+  <section id="sec2">
+    <div class="sec-head"><span class="sec-num">KPI 02</span><span class="sec-title">2025 活动 vs 2026 活动</span><span class="sec-sub">Top 3 by Diff RM</span></div>
+    <div class="card" id="sec2-body"><div class="loading-msg">▸ 等待中…</div></div>
+  </section>
+
+  <div class="grid3">
+    <section id="sec3">
+      <div class="sec-head"><span class="sec-num">KPI 03</span><span class="sec-title">AOV 最高</span></div>
+      <div class="card big-stat" id="sec3-body"><div class="loading-msg">▸ 等待中…</div></div>
+    </section>
+    <section id="sec4">
+      <div class="sec-head"><span class="sec-num">KPI 04</span><span class="sec-title">Sales 最高</span></div>
+      <div class="card big-stat" id="sec4-body"><div class="loading-msg">▸ 等待中…</div></div>
+    </section>
+    <section id="sec5">
+      <div class="sec-head"><span class="sec-num">KPI 05</span><span class="sec-title">Orders 最多</span></div>
+      <div class="card big-stat" id="sec5-body"><div class="loading-msg">▸ 等待中…</div></div>
+    </section>
+  </div>
+
+  <section id="sec6">
+    <div class="sec-head"><span class="sec-num">KPI 06</span><span class="sec-title">Repeat Sales 最高</span></div>
+    <div class="card big-stat" id="sec6-body"><div class="loading-msg">▸ 等待中…</div></div>
+  </section>
+
+  <footer>SUPABASE MCP · CLAUDE SONNET 4.6 · OXM1 ∪ OXM2 unified CTE · 实时查询</footer>
+</div>
+
+<script>
+const SEVEN_LIST = ["Skindae","Beyoute","Masternerve","URO360","Livact","Agepros","Kidsaie"];
+const CONFIG = {
+  PROJECT_REF: "qvhwbxrsucttamiljfau",
+  MCP_URL: "https://mcp.supabase.com/mcp",
+  MODEL: "claude-sonnet-4-6",
+  TY_START: "2026-08-01 13:00:00",
+  TY_END:   "2026-08-02 13:00:00",
+  LY_START: "2025-08-01 13:00:00",
+  LY_END:   "2025-08-02 13:00:00",
+  Y2026_START: "2026-01-01 00:00:00"
+};
+
+const statusEl = document.getElementById('statusLabel');
+function setStatus(t,c){statusEl.textContent=t;statusEl.className='status'+(c?' '+c:'');}
+function rm(n){ if(n===null||n===undefined||isNaN(n)) return '—'; return 'RM '+Number(n).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function pct(n){ if(n===null||n===undefined||isNaN(n)) return '—'; const s=n>0?'+':''; return s+Number(n).toFixed(1)+'%'; }
+function sevenSql(){ return SEVEN_LIST.map(p=>"'"+p.replace(/'/g,"''")+"'").join(','); }
+
+async function callClaude(promptText, maxTokens){
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      model: CONFIG.MODEL, max_tokens: maxTokens||1800,
+      messages:[{role:"user", content: promptText}],
+      mcp_servers:[{type:"url", url:CONFIG.MCP_URL, name:"supabase"}]
+    })
+  });
+  if(!resp.ok){ const t=await resp.text(); throw new Error("API "+resp.status+": "+t.slice(0,200)); }
+  const data = await resp.json();
+  const textBlocks = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text);
+  let raw = textBlocks.join("\n").trim();
+  raw = raw.replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+  const m = raw.match(/\{[\s\S]*\}/);
+  if(m) raw = m[0];
+  try{ return JSON.parse(raw); }catch(e){ throw new Error("JSON解析失败: "+raw.slice(0,300)); }
+}
+
+function errorBox(id, err, retryFn){
+  const el = document.getElementById(id); el.innerHTML='';
+  const box = document.createElement('div'); box.className='error-box';
+  box.innerHTML = '⚠ 查询失败：'+(err.message||err)+'<br><button class="refresh">↻ 重试</button>';
+  box.querySelector('button').onclick = retryFn;
+  el.appendChild(box);
+}
+
+function addSqlToggle(container, sql){
+  const t = document.createElement('span');
+  t.className='sql-toggle'; t.textContent='▸ 查看执行的 SQL';
+  const box = document.createElement('div');
+  box.className='sql-box'; box.textContent = sql;
+  t.onclick = ()=>{ box.classList.toggle('open'); t.textContent = box.classList.contains('open')?'▾ 隐藏 SQL':'▸ 查看执行的 SQL'; };
+  container.appendChild(t); container.appendChild(box);
+}
+
+let SCHEMA = null;
+
+async function discoverSchema(){
+  const prompt = `你有一个 Supabase 项目的 MCP 工具访问权限。项目 ref 大约是 "${CONFIG.PROJECT_REF}"（如需要请用 list_projects 确认具体 project_id）。
+
+这个项目有两个订单系统的资料表：
+- OXM1（旧系统）：valid order 判断条件是某个状态字段 = 'Checkout'
+- OXM2（新系统）：valid order 判断条件是某个状态字段 IN ('Pending','Shipped')
+
+请：
+1. 用 list_tables 查看 public schema 所有表，找出这两张实际表名（可能叫 oxm1_orders/oxm2_orders，也可能是别的命名，需要你判断，可以抽样看几行数据，确认哪张表的状态字段里真的出现 'Checkout'，哪张出现 'Pending'/'Shipped'）。
+2. 分别确认两张表的列名：订单状态、订单时间戳、金额/总价、project 名称、客户标识、订单编号。
+
+只返回纯 JSON，不要解释、不要 markdown：
+{
+ "oxm1":{"table":"实际表名","status_col":"...","timestamp_col":"...","amount_col":"...","project_col":"...","customer_col":"...","order_id_col":"..."},
+ "oxm2":{"table":"实际表名","status_col":"...","timestamp_col":"...","amount_col":"...","project_col":"...","customer_col":"...","order_id_col":"..."},
+ "notes":"任何重要细节，例如实际观察到的 project 名称拼写、状态字段实际值、时区等"
+}`;
+  return await callClaude(prompt, 1600);
+}
+
+function unifiedCTE(){
+  const o1 = SCHEMA.oxm1, o2 = SCHEMA.oxm2;
+  return `WITH oxm1_valid AS (
+  SELECT "${o1.project_col}" AS project, "${o1.timestamp_col}" AS ts, "${o1.amount_col}" AS amount, "${o1.customer_col}" AS customer, "${o1.order_id_col}" AS order_id
+  FROM ${o1.table}
+  WHERE "${o1.status_col}" = 'Checkout'
+),
+oxm2_valid AS (
+  SELECT "${o2.project_col}" AS project, "${o2.timestamp_col}" AS ts, "${o2.amount_col}" AS amount, "${o2.customer_col}" AS customer, "${o2.order_id_col}" AS order_id
+  FROM ${o2.table}
+  WHERE "${o2.status_col}" IN ('Pending','Shipped')
+),
+unified AS (
+  SELECT * FROM oxm1_valid WHERE project NOT IN (${sevenSql()})
+  UNION ALL
+  SELECT * FROM oxm1_valid WHERE project IN (${sevenSql()}) AND ts < '${CONFIG.Y2026_START}'
+  UNION ALL
+  SELECT * FROM oxm2_valid WHERE project IN (${sevenSql()})
+)`;
+}
+
+async function execSql(sql, resultDesc){
+  const prompt = `你有 Supabase MCP 工具访问权限。请用 execute_sql 工具，在项目 "${CONFIG.PROJECT_REF}" 上，原样执行以下这段 SQL（不要修改逻辑，只在必要时修正语法以适配 Postgres）：
+
+\`\`\`sql
+${sql}
+\`\`\`
+
+执行后，把返回的每一行数据转换成 JSON。${resultDesc}
+只返回纯 JSON，不要解释、不要 markdown 代码块标记。`;
+  return await callClaude(prompt, 2000);
+}
+
+async function fetchBest2025(){
+  const sql = unifiedCTE() + `
+SELECT project, date(ts) AS d, SUM(amount) AS day_sales
+FROM unified
+WHERE ts >= '2025-01-01 00:00:00' AND ts < '${CONFIG.Y2026_START}'
+GROUP BY project, date(ts)
+ORDER BY project, day_sales DESC;`;
+  const d = await execSql(sql, `返回格式: {"rows":[{"project":"...","d":"YYYY-MM-DD","day_sales":0}, ...]} —— 这是每个project每一天的销售额，我需要全部原始行，我自己会在前端算出每个project的最高单日。`);
+  const rows = d.rows||[];
+  const bestByProject = {};
+  rows.forEach(r=>{
+    if(!bestByProject[r.project] || r.day_sales > bestByProject[r.project].day_sales){
+      bestByProject[r.project] = r;
+    }
+  });
+  return bestByProject;
+}
+
+async function loadKpi1(best2025){
+  const sql = unifiedCTE() + `
+SELECT project, SUM(amount) AS event_sales_2026
+FROM unified
+WHERE ts >= '${CONFIG.TY_START}' AND ts < '${CONFIG.TY_END}'
+GROUP BY project;`;
+  try{
+    const d = await execSql(sql, `返回格式: {"rows":[{"project":"...","event_sales_2026":0}]}`);
+    const rows = d.rows||[];
+    const combined = rows.map(r=>{
+      const b = best2025[r.project];
+      if(!b) return null;
+      const diff = r.event_sales_2026 - b.day_sales;
+      const dp = b.day_sales ? (diff/b.day_sales*100) : null;
+      return {project:r.project, best_date:b.d, best_day_sales:b.day_sales, event_sales_2026:r.event_sales_2026, diff_rm:diff, diff_pct:dp};
+    }).filter(Boolean).sort((a,b)=>b.diff_rm-a.diff_rm).slice(0,3);
+    renderKpi1(combined, sql);
+  }catch(e){
+    errorBox('sec1-body', e, ()=>{document.getElementById('sec1-body').innerHTML='<div class="loading-msg">重新查询…</div>';loadKpi1(best2025);});
+  }
+}
+
+function renderKpi1(items, sql){
+  const el = document.getElementById('sec1-body'); el.innerHTML='';
+  items.forEach((it,i)=>{
+    const row = document.createElement('div'); row.className='row';
+    row.innerHTML = `<span class="label"><span class="rank">${i+1}</span>${it.project}<span class="sub">2025最高单日(${it.best_date}) ${rm(it.best_day_sales)} → 2026活动 ${rm(it.event_sales_2026)}</span></span>
+      <span class="amount">${rm(it.diff_rm)}<span class="pill ${it.diff_rm>=0?'up':'down'}">${pct(it.diff_pct)}</span></span>`;
+    el.appendChild(row);
+  });
+  if(!items.length) el.innerHTML='<div class="loading-msg">无数据</div>';
+  addSqlToggle(el, sql);
+}
+
+async function loadKpi2(){
+  const sql = unifiedCTE() + `
+, event_2025 AS (
+  SELECT project, SUM(amount) AS sales_2025
+  FROM unified WHERE ts >= '${CONFIG.LY_START}' AND ts < '${CONFIG.LY_END}'
+  GROUP BY project
+),
+event_2026 AS (
+  SELECT project, SUM(amount) AS sales_2026
+  FROM unified WHERE ts >= '${CONFIG.TY_START}' AND ts < '${CONFIG.TY_END}'
+  GROUP BY project
+)
+SELECT COALESCE(a.project,b.project) AS project, a.sales_2025, b.sales_2026
+FROM event_2025 a
+FULL OUTER JOIN event_2026 b ON a.project=b.project;`;
+  try{
+    const d = await execSql(sql, `返回格式: {"rows":[{"project":"...","sales_2025":0,"sales_2026":0}]}（某年没有数据则为null或0）`);
+    const rows = (d.rows||[]).map(r=>{
+      const s25 = r.sales_2025||0, s26 = r.sales_2026||0;
+      const diff = s26-s25;
+      const dp = s25 ? (diff/s25*100) : null;
+      return {project:r.project, sales_2025:s25, sales_2026:s26, diff_rm:diff, diff_pct:dp};
+    }).sort((a,b)=>b.diff_rm-a.diff_rm).slice(0,3);
+    renderKpi2(rows, sql);
+  }catch(e){
+    errorBox('sec2-body', e, ()=>{document.getElementById('sec2-body').innerHTML='<div class="loading-msg">重新查询…</div>';loadKpi2();});
+  }
+}
+
+function renderKpi2(items, sql){
+  const el = document.getElementById('sec2-body'); el.innerHTML='';
+  items.forEach((it,i)=>{
+    const row = document.createElement('div'); row.className='row';
+    row.innerHTML = `<span class="label"><span class="rank">${i+1}</span>${it.project}<span class="sub">2025活动 ${rm(it.sales_2025)} → 2026活动 ${rm(it.sales_2026)}</span></span>
+      <span class="amount">${rm(it.diff_rm)}<span class="pill ${it.diff_rm>=0?'up':'down'}">${pct(it.diff_pct)}</span></span>`;
+    el.appendChild(row);
+  });
+  if(!items.length) el.innerHTML='<div class="loading-msg">无数据</div>';
+  addSqlToggle(el, sql);
+}
+
+async function loadKpi345(){
+  const sql = unifiedCTE() + `
+SELECT project, SUM(amount) AS sales, COUNT(DISTINCT order_id) AS orders
+FROM unified
+WHERE ts >= '${CONFIG.TY_START}' AND ts < '${CONFIG.TY_END}'
+GROUP BY project;`;
+  try{
+    const d = await execSql(sql, `返回格式: {"rows":[{"project":"...","sales":0,"orders":0}]}`);
+    const rows = (d.rows||[]).map(r=>({...r, aov: r.orders? r.sales/r.orders : null}));
+    const byAov = [...rows].sort((a,b)=>(b.aov||0)-(a.aov||0))[0];
+    const bySales = [...rows].sort((a,b)=>(b.sales||0)-(a.sales||0))[0];
+    const byOrders = [...rows].sort((a,b)=>(b.orders||0)-(a.orders||0))[0];
+    renderBigStat('sec3-body', byAov?.project, rm(byAov?.aov), 'AOV', `Sales ${rm(byAov?.sales)} ÷ ${byAov?.orders} orders`, sql);
+    renderBigStat('sec4-body', bySales?.project, rm(bySales?.sales), 'Sales', `${bySales?.orders} orders`, sql);
+    renderBigStat('sec5-body', byOrders?.project, byOrders?.orders+' 单', 'Orders', `Sales ${rm(byOrders?.sales)}`, sql);
+  }catch(e){
+    errorBox('sec3-body', e, ()=>{document.getElementById('sec3-body').innerHTML='<div class="loading-msg">重新查询…</div>';loadKpi345();});
+    errorBox('sec4-body', e, ()=>{document.getElementById('sec4-body').innerHTML='<div class="loading-msg">重新查询…</div>';loadKpi345();});
+    errorBox('sec5-body', e, ()=>{document.getElementById('sec5-body').innerHTML='<div class="loading-msg">重新查询…</div>';loadKpi345();});
+  }
+}
+
+function renderBigStat(id, project, valueStr, label, detail, sql){
+  const el = document.getElementById(id);
+  el.innerHTML = `<div class="label">${label}</div><div class="value">${project||'—'}</div><div class="value" style="font-size:18px;color:var(--text);">${valueStr||'—'}</div><div class="detail">${detail}</div>`;
+  addSqlToggle(el, sql);
+}
+
+async function loadKpi6(){
+  const sql = unifiedCTE() + `
+, oxm1_repeat_customers AS (
+  SELECT DISTINCT customer FROM oxm1_valid WHERE ts < '${CONFIG.TY_START}'
+),
+oxm2_customer_counts AS (
+  SELECT customer, COUNT(DISTINCT order_id) AS cnt FROM oxm2_valid GROUP BY customer
+),
+oxm2_repeat_customers AS (
+  SELECT customer FROM oxm2_customer_counts WHERE cnt >= 2
+),
+event_orders AS (
+  SELECT * FROM unified WHERE ts >= '${CONFIG.TY_START}' AND ts < '${CONFIG.TY_END}'
+),
+event_repeat AS (
+  SELECT eo.project, eo.amount
+  FROM event_orders eo
+  WHERE (eo.project NOT IN (${sevenSql()}) AND eo.customer IN (SELECT customer FROM oxm1_repeat_customers))
+     OR (eo.project IN (${sevenSql()}) AND eo.customer IN (SELECT customer FROM oxm2_repeat_customers))
+)
+SELECT project, SUM(amount) AS repeat_sales
+FROM event_repeat
+GROUP BY project
+ORDER BY repeat_sales DESC;`;
+  try{
+    const d = await execSql(sql, `返回格式: {"rows":[{"project":"...","repeat_sales":0}]}`);
+    const rows = d.rows||[];
+    const top = rows[0];
+    const el = document.getElementById('sec6-body');
+    if(!top){ el.innerHTML='<div class="loading-msg">无 Repeat Sales 数据</div>'; return; }
+    el.innerHTML = `<div class="label">Repeat Sales 最高 Project</div><div class="value">${top.project}</div><div class="value" style="font-size:20px;color:var(--text);">${rm(top.repeat_sales)}</div>`;
+    addSqlToggle(el, sql);
+  }catch(e){
+    errorBox('sec6-body', e, ()=>{document.getElementById('sec6-body').innerHTML='<div class="loading-msg">重新查询…</div>';loadKpi6();});
+  }
+}
+
+async function runAll(){
+  setStatus('正在探测数据库结构（OXM1 + OXM2）…');
+  try{
+    SCHEMA = await discoverSchema();
+    setStatus('结构已确认，正在计算 KPI 01…', 'live');
+  }catch(e){
+    setStatus('数据库结构探测失败', 'err');
+    errorBox('sec1-body', e, runAll);
+    return;
+  }
+  let best2025;
+  try{
+    best2025 = await fetchBest2025();
+  }catch(e){
+    setStatus('2025数据查询失败', 'err');
+    errorBox('sec1-body', e, runAll);
+    return;
+  }
+
+  setStatus('查询 KPI 01…', 'live'); await loadKpi1(best2025);
+  setStatus('查询 KPI 02…', 'live'); await loadKpi2();
+  setStatus('查询 KPI 03/04/05…', 'live'); await loadKpi345();
+  setStatus('查询 KPI 06…', 'live'); await loadKpi6();
+  setStatus('最后更新: '+new Date().toLocaleTimeString('zh-CN'), 'live');
+}
+
+document.getElementById('refreshBtn').onclick = ()=>{
+  ['sec1-body','sec2-body','sec3-body','sec4-body','sec5-body','sec6-body'].forEach(id=>{
+    document.getElementById(id).innerHTML = '<div class="loading-msg">▸ 重新查询…</div><div class="skeleton"></div>';
+  });
+  runAll();
+};
+
+runAll();
+</script>
+</body>
+</html>
