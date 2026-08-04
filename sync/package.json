@@ -1,0 +1,30 @@
+{
+  "name": "livedata-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Trigger.dev scheduled sync: legacy MySQL + YZ -> Supabase Postgres",
+  "type": "module",
+  "scripts": {
+    "dev": "npx trigger.dev@4.1.1 dev",
+    "deploy": "npx trigger.dev@4.1.1 deploy",
+    "type-check": "tsc --noEmit",
+    "test": "tsx test/sync.test.mts && tsx test/uuid-cursor.test.mts",
+    "check": "npm run type-check && npm run test",
+    "doctor": "tsx test/doctor.mts"
+  },
+  "dependencies": {
+    "@trigger.dev/sdk": "4.1.1",
+    "mysql2": "^3.15.3",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.4",
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.23.1",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

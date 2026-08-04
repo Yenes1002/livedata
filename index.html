@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CTG 巅峰购物嘉年华 · Live Command Center</title>
+
+<!-- Tailwind (no-build CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Supabase JS client — 必须在 module 之前加载，src/data/client.js 用的是 window.supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Fonts: Sora (headers) · JetBrains Mono (data readouts) · Inter (body) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg-deep:#0A0716;
+    --bg-panel:#160C2C;
+    --bg-panel-2:#1D1138;
+    --purple:#7C3AED;
+    --purple-2:#9D6BFF;
+    --purple-line: rgba(157,107,255,0.25);
+    --gold:#E8B93E;
+    --gold-bright:#F6D671;
+    --green:#34D399;
+    --red:#F87171;
+    --text-hi:#F3EFFF;
+    --text-mid:#B3A9D6;
+    --text-low:#6E6390;
+  }
+  html,body{ background:var(--bg-deep); color:var(--text-hi); font-family:'Inter',sans-serif; }
+  .font-display{ font-family:'Sora',sans-serif; }
+  .font-mono{ font-family:'JetBrains Mono',monospace; }
+
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(124,58,237,0.20), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(232,185,62,0.10), transparent 55%),
+      var(--bg-deep);
+  }
+
+  .panel{
+    background: linear-gradient(180deg, var(--bg-panel-2) 0%, var(--bg-panel) 100%);
+    border: 1px solid var(--purple-line);
+    border-radius: 14px;
+    position: relative;
+  }
+  .panel::before{
+    content:"";
+    position:absolute; inset:0; border-radius:14px; padding:1px;
+    background: linear-gradient(135deg, rgba(157,107,255,0.35), rgba(232,185,62,0.15) 40%, transparent 70%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events:none;
+  }
+
+  .eyebrow{ letter-spacing:.18em; font-size:11px; color:var(--text-mid); text-transform:uppercase; }
+
+  /* LIVE 指示点 — 环的动画由 anime.js 驱动（src/lib/motion.js: livePulse） */
+  .pulse-dot{ width:8px; height:8px; border-radius:9999px; background:var(--green); position:relative; }
+  .pulse-ring{
+    position:absolute; inset:-6px; border-radius:9999px;
+    border:1px solid var(--green); opacity:0; pointer-events:none;
+  }
+
+  /* header 扫光 — 位移由 anime.js 驱动（motion.js: headerScan） */
+  .scan-line{
+    position:absolute; top:0; left:-30%; width:30%; height:100%;
+    background: linear-gradient(90deg, transparent, rgba(246,214,113,0.10), transparent);
+    pointer-events:none;
+  }
+
+  /* 顶部加载进度条 */
+  #loadBar{
+    position:fixed; top:0; left:0; height:2px; width:0%;
+    background: linear-gradient(90deg, var(--purple-2), var(--gold-bright));
+    z-index:60; opacity:0; pointer-events:none;
+  }
+
+  #statusBanner{
+    display:flex; align-items:center; justify-content:center; gap:12px;
+    border:1px solid transparent; border-radius:10px;
+    font-size:12px; text-align:center; padding:8px 14px;
+  }
+  .retry-btn{
+    border:1px solid currentColor; border-radius:6px;
+    padding:2px 10px; font-size:11px; font-weight:600;
+  }
+  .retry-btn:hover{ background:rgba(255,255,255,0.06); }
+
+  .kpi-val{ font-variant-numeric: tabular-nums; }
+  .up{ color:var(--green); }
+  .down{ color:var(--red); }
+  .flat{ color:var(--text-mid); }
+
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{ background:var(--purple-line); border-radius:8px; }
+
+  /* ---------- 倒计时环 ---------- */
+  .countdown-wrap{ position:relative; width:38px; height:38px; }
+  .countdown-wrap svg{ transform:rotate(-90deg); }
+  .countdown-track{ stroke:rgba(255,255,255,0.08); }
+  .countdown-ring{ stroke:var(--gold-bright); transition:stroke .3s ease; }
+
+  /* ---------- 排名 ---------- */
+  .rank-row{
+    display:flex; align-items:center; gap:12px;
+    padding:8px 6px; border-radius:10px; cursor:pointer;
+    transition: background .18s ease;
+  }
+  .rank-row:hover{ background:rgba(157,107,255,0.08); }
+  .rank-row:focus-visible{ outline:1px solid var(--purple-2); outline-offset:1px; }
+
+  .rank-badge{
+    width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; flex-shrink:0;
+  }
+  .rank-1{ background:linear-gradient(135deg,var(--gold-bright),var(--gold)); color:#241705; }
+  .rank-2{ background:rgba(179,169,214,0.18); color:var(--text-hi); border:1px solid rgba(179,169,214,0.35); }
+  .rank-3{ background:rgba(232,185,62,0.14); color:var(--gold-bright); border:1px solid rgba(232,185,62,0.35); }
+  .rank-n{ background:rgba(255,255,255,0.04); color:var(--text-mid); border:1px solid rgba(255,255,255,0.06); }
+
+  .rank-delta{
+    font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600;
+    padding:1px 5px; border-radius:5px; flex-shrink:0;
+  }
+  .rank-delta.is-up{ color:var(--green); background:rgba(52,211,153,0.12); }
+  .rank-delta.is-down{ color:var(--red); background:rgba(248,113,113,0.12); }
+  .rank-delta.is-flat{ color:var(--text-low); background:rgba(255,255,255,0.04); }
+  .rank-delta.is-new{ color:var(--gold-bright); background:rgba(232,185,62,0.14); }
+
+  .progress-track{ background: rgba(255,255,255,0.06); border-radius:9999px; overflow:hidden; }
+  .progress-fill{ background: linear-gradient(90deg, var(--purple), var(--gold-bright)); }
+
+  /* ---------- sparkline ---------- */
+  .spark-host{ cursor:crosshair; }
+  .spark{ width:100%; height:54px; display:block; }
+  .spark-empty{ display:none; }
+
+  /* ---------- 表格 ---------- */
+  table.perf thead th{ color:var(--text-mid); font-weight:600; font-size:11px; letter-spacing:.05em; text-transform:uppercase; }
+  table.perf thead th.sort-th{ cursor:pointer; user-select:none; }
+  table.perf thead th.sort-th:hover{ color:var(--text-hi); }
+  table.perf thead th.sort-th:focus-visible{ outline:1px solid var(--purple-2); }
+  table.perf tbody tr{ border-top:1px solid rgba(255,255,255,0.05); cursor:pointer; }
+  table.perf tbody tr:hover{ background: rgba(157,107,255,0.06); }
+  .cell-trend{ font-size:10px; font-family:'JetBrains Mono',monospace; margin-top:2px; }
+
+  /* status values the data layer can produce: active | idle (see data/fetch.js) */
+  .status-dot{ width:6px; height:6px; border-radius:9999px; display:inline-block; margin-right:6px; }
+  .status-active{ background:var(--green); }
+  .status-idle{ background:var(--gold); }
+
+  /* ---------- 筛选栏 ---------- */
+  .filter-input{
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--purple-line);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-hi);
+    color-scheme: dark;
+  }
+  .filter-input:focus{ outline: 1px solid var(--purple-2); }
+
+  .preset-btn{
+    font-size:11px; padding:5px 10px; border-radius:8px;
+    border:1px solid var(--purple-line); color:var(--text-mid);
+    transition: color .15s ease, background .15s ease, border-color .15s ease;
+  }
+  .preset-btn:hover{ color:var(--text-hi); border-color:var(--purple-2); }
+  .preset-btn.active{ background:rgba(157,107,255,0.18); color:var(--text-hi); border-color:var(--purple-2); }
+
+  #filterApply.is-busy{ opacity:.6; cursor:progress; }
+
+  #tvScrollToggle.active{ background: var(--purple); color:#fff; border-color:var(--purple) !important; }
+
+  /* 系统要求减少动效时，把剩下的 CSS 过渡也关掉 */
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+</style>
+</head>
+
+<body class="min-h-screen">
+
+<div id="loadBar"></div>
+
+<!-- ============================= HEADER ============================= -->
+<header class="panel mx-4 mt-4 overflow-hidden">
+  <div class="scan-line" id="headerScan"></div>
+  <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+    <div class="flex items-center gap-4">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center font-display font-extrabold text-lg"
+           style="background:linear-gradient(135deg,var(--purple),var(--gold-bright)); color:#150C29;">CTG</div>
+      <div>
+        <p class="eyebrow">Live Command Center</p>
+        <h1 class="font-display font-bold text-2xl tracking-tight">CTG 巅峰购物嘉年华</h1>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-5 flex-wrap">
+      <div id="statusPill" class="flex items-center gap-2 px-3 py-1.5 rounded-full"
+           style="background:rgba(52,211,153,0.08); border:1px solid rgba(52,211,153,0.3);">
+        <span class="pulse-dot" id="pulseDot"><span class="pulse-ring" id="pulseRing"></span></span>
+        <span class="text-xs font-semibold tracking-wide" id="statusLabel" style="color:var(--green)">LIVE</span>
+      </div>
+
+      <div class="text-right">
+        <p class="eyebrow">本地时间</p>
+        <p id="clock" class="font-mono text-lg font-semibold">--:--:--</p>
+      </div>
+
+      <!-- 刷新倒计时：环 + 数字，由 anime timer 驱动 -->
+      <div class="flex items-center gap-2.5">
+        <div class="countdown-wrap">
+          <svg viewBox="0 0 38 38" width="38" height="38">
+            <circle class="countdown-track" cx="19" cy="19" r="15" fill="none" stroke-width="2.5"/>
+            <circle class="countdown-ring" id="countdownRing" cx="19" cy="19" r="15"
+                    fill="none" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <p class="eyebrow">下次刷新</p>
+          <p id="countdown" class="font-mono text-lg font-semibold" style="color:var(--gold-bright)">05:00</p>
+        </div>
+      </div>
+
+      <div class="text-right hidden md:block">
+        <p class="eyebrow">最后更新</p>
+        <p id="lastRefresh" class="font-mono text-sm" style="color:var(--text-mid)">--</p>
+      </div>
+
+      <button id="tvScrollToggle" title="TV 自动滚动模式" aria-pressed="false"
+        class="text-xs font-semibold px-3 py-2 rounded-lg border transition"
+        style="border-color:var(--purple-line); color:var(--text-mid);">TV 模式</button>
+    </div>
+  </div>
+</header>
+
+<div class="mx-4 mt-3">
+  <div id="statusBanner" class="hidden"></div>
+</div>
+
+<main class="p-4 space-y-4 max-w-[1900px] mx-auto">
+
+  <!-- ============================= FILTER BAR ============================= -->
+  <section class="panel p-4 flex flex-wrap items-center gap-4">
+    <div class="flex items-center gap-2">
+      <label class="eyebrow" for="filterStartDate">Date range</label>
+      <input type="date" id="filterStartDate" class="filter-input" />
+      <span style="color:var(--text-low)">→</span>
+      <input type="date" id="filterEndDate" class="filter-input" />
+    </div>
+
+    <div class="flex items-center gap-1.5" id="filterPresets"></div>
+
+    <div class="flex items-center gap-2">
+      <label class="eyebrow" for="filterProject">Project</label>
+      <select id="filterProject" class="filter-input"><option value="all">All Projects</option></select>
+    </div>
+
+    <button id="filterApply" class="text-xs font-semibold px-4 py-2 rounded-lg"
+      style="background:linear-gradient(135deg,var(--purple),var(--purple-2)); color:#fff;">Apply</button>
+    <button id="filterReset" class="text-xs px-4 py-2 rounded-lg border"
+      style="border-color:var(--purple-line); color:var(--text-mid);">Reset</button>
+
+    <span class="text-xs ml-auto font-mono" style="color:var(--text-low)" id="filterSummary"></span>
+  </section>
+
+  <!-- ============================= KPI GRID ============================= -->
+  <section>
+    <div class="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-3">
+      <div class="panel p-5 flex flex-col justify-center" id="kpiHero"></div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="kpiGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============================= RANKINGS ============================= -->
+  <section class="grid gap-4" id="rankingSection">
+    <div class="panel p-5" id="internalPanel">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-display font-semibold text-base" id="internalTitle">Internal Ranking · Top 10</h2>
+        <span class="eyebrow">Sort: Total Sales ↓</span>
+      </div>
+      <div id="internalRanking" class="space-y-1"></div>
+    </div>
+    <div class="panel p-5" id="externalPanel">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-display font-semibold text-base" id="externalTitle">External Ranking · Top 10</h2>
+        <span class="eyebrow">Sort: Total Sales ↓</span>
+      </div>
+      <div id="externalRanking" class="space-y-1"></div>
+    </div>
+  </section>
+
+  <!-- ============================= PROJECT PERFORMANCE TABLE ============================= -->
+  <section class="panel p-5">
+    <div class="flex items-center justify-between mb-4 gap-4">
+      <h2 class="font-display font-semibold text-base">Project Performance</h2>
+      <div class="flex items-center gap-4">
+        <span class="eyebrow" id="tableSortNote"></span>
+        <span class="eyebrow" id="tableCount">-- projects</span>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="perf w-full text-sm">
+        <thead>
+          <tr class="text-left" id="perfTableHead"></tr>
+        </thead>
+        <tbody id="perfTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="text-center text-xs py-6" style="color:var(--text-low)">
+    CTG 巅峰购物嘉年华 · Live Dashboard · Powered by Supabase · 自动刷新每 5 分钟
+  </footer>
+</main>
+
+<script type="module" src="./src/app.js"></script>
+</body>
+</html>

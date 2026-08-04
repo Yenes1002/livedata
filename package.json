@@ -1,0 +1,19 @@
+{
+  "name": "livedata-sync-starter",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CTG 巅峰购物嘉年华 · Live Command Center — Supabase-backed live sales dashboard",
+  "scripts": {
+    "dev": "serve . --listen 8000 --no-clipboard",
+    "start": "serve . --listen 8000 --no-clipboard",
+    "test": "node test/run.mjs && node test/variants.mjs",
+    "test:main": "node test/run.mjs",
+    "test:variants": "node test/variants.mjs"
+  },
+  "devDependencies": {
+    "animejs": "4.5.0",
+    "jsdom": "^30.0.1",
+    "serve": "^14.2.6"
+  }
+}
