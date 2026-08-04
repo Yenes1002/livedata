@@ -404,14 +404,16 @@ function expenseAmount(row){
 
 /* =====================================================================
    LEGACY (OXM1) — legacy_orders 也要合进 Total Sales。
-   分组维度是 Project Name（不是 merchant），时间用 created_datetime（不是 order_date）。
+   分组维度是 Project Name（不是 merchant），时间用 order_date，跟 OXM2 的口径统一
+   （之前用过 created_datetime——订单录入系统的时间，跟 order_date 对不上，同一天的
+   数字对不上手动核对的 SQL，改成 order_date 后两边口径一致）。
    merchant 只用来判断 workspace 白名单，不参与显示/分组。
    排除规则：project_name = "Offline" 的、is_active 不是 true 的 project/page，都不算。
    ===================================================================== */
 const LEGACY_ORDERS_TABLE = "legacy_orders";
 const LEGACY_ORDER_COLUMN_MAP = {
   order_no:          "order_no",
-  created_datetime:  "created_datetime",  // Total Sales / Total Orders 用这个时间字段
+  order_date:        "order_date",        // Total Sales / Total Orders 用这个时间字段，跟 OXM2 统一口径
   merchant_id:       "merchant_id",
   project_id:        "project_id",        // 只用来判断这笔订单所属 project 是不是要被排除
   grand_total:       "grand_total",
@@ -590,9 +592,9 @@ async function fetchDashboardData(filters){
       .lte(EXPENSE_COLUMN_MAP.entry_date, endDateStr)),
     fetchAllRows(MARKET_TABLE_NAME, "id", q => q),
     fetchAllRows(BRAND_TABLE_NAME, "id", q => q),
-    fetchAllRows(LEGACY_ORDERS_TABLE, [LEGACY_ORDER_COLUMN_MAP.created_datetime, "id"], q => q
-      .gte(LEGACY_ORDER_COLUMN_MAP.created_datetime, toNaiveTimestampString(prevStart))
-      .lt(LEGACY_ORDER_COLUMN_MAP.created_datetime, toNaiveTimestampString(endExclusive))),
+    fetchAllRows(LEGACY_ORDERS_TABLE, [LEGACY_ORDER_COLUMN_MAP.order_date, "id"], q => q
+      .gte(LEGACY_ORDER_COLUMN_MAP.order_date, toNaiveTimestampString(prevStart))
+      .lt(LEGACY_ORDER_COLUMN_MAP.order_date, toNaiveTimestampString(endExclusive))),
     fetchAllRows(LEGACY_PROJECTS_TABLE, "id", q => q),
     fetchAllRows(LEGACY_PAGE_TABLE, "id", q => q),
     fetchAllRows(LEGACY_PAGEAD_TABLE, [LEGACY_PAGEAD_COLUMN_MAP.date, "id"], q => q
@@ -638,13 +640,13 @@ async function fetchDashboardData(filters){
     .filter(r => isOxm2BrandAllowed(r._brandName));
 
   // legacy（OXM1）的订单：按 project name 分组，只看 project_id 在 LEGACY_ALLOWED_PROJECT_IDS 白名单里的，
-  // 跟 Ads Spend 用同一份名单，两边标准统一。时间用 created_datetime。
+  // 跟 Ads Spend 用同一份名单，两边标准统一。时间用 order_date，跟 OXM2 统一口径。
   const legacyRows = (rawLegacyOrders || [])
     .filter(r => !EXCLUDED_ORDER_STATUSES.includes((r[LEGACY_ORDER_COLUMN_MAP.order_status] || "").toLowerCase()))
     .filter(r => LEGACY_ALLOWED_PROJECT_IDS.includes(Number(r[LEGACY_ORDER_COLUMN_MAP.project_id])))
     .map(r => ({
       [COLUMN_MAP.order_no]: "legacy-" + r[LEGACY_ORDER_COLUMN_MAP.order_no],
-      [COLUMN_MAP.order_date]: r[LEGACY_ORDER_COLUMN_MAP.created_datetime],
+      [COLUMN_MAP.order_date]: r[LEGACY_ORDER_COLUMN_MAP.order_date],
       [COLUMN_MAP.grand_total]: r[LEGACY_ORDER_COLUMN_MAP.grand_total],
       _brandName: legacyProjectIdToName[r[LEGACY_ORDER_COLUMN_MAP.project_id]] || "Unknown",
       _source: "legacy",
