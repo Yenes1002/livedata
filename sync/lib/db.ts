@@ -6,8 +6,19 @@
  * `assertIdentifier` first, and values always go through placeholders.
  */
 import mysql from "mysql2/promise";
-import { Pool } from "pg";
+import { Pool, types as pgTypes } from "pg";
 import type { Dialect } from "./types.js";
+
+// Postgres timestamp/timestamptz (OIDs 1114/1184) default to parsing into a JS
+// Date, which only holds millisecond precision. A source column with
+// microsecond precision gets silently truncated, so the value we write back
+// as a keyset cursor no longer matches what's actually stored — comparisons
+// against it can miss rows or get stuck. Read them as raw strings instead,
+// the same fix already applied to the MySQL source via `dateStrings: true`.
+const RAW_TIMESTAMP_TYPES = {
+  getTypeParser: (oid: number, format?: unknown) =>
+    oid === 1114 || oid === 1184 ? (val: string) => val : pgTypes.getTypeParser(oid, format as never),
+};
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_$]*$/;
 
@@ -110,6 +121,7 @@ async function connectPostgresSource(url: string, label: string): Promise<ReadCo
     connectionString: url,
     ssl: { rejectUnauthorized: false },
     max: 2,
+    types: RAW_TIMESTAMP_TYPES,
   });
 
   try {
