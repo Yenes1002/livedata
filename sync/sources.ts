@@ -31,7 +31,9 @@ export const SOURCES: SourceSpec[] = [
       { source: "Merchant", target: "legacy_merchants" },
       { source: "MerchantProject", target: "legacy_projects" },
       { source: "MerchantProjectPage", target: "legacy_page" },
-      { source: "MerchantProjectPageAd", target: "legacy_pagead" },
+      // 活动开始日（2026-07-26）之前的广告花费明细已经删了（超过 Supabase 免费版存储上限，
+      // legacy_pagead 单表一度占了 185MB）。加这个 where 防止以后同步又把旧数据拉回来。
+      { source: "MerchantProjectPageAd", target: "legacy_pagead", where: "date >= '2026-07-26'" },
       { source: "Customer", target: "legacy_customer" },
       { source: "MerchantProjectPageOrder", target: "legacy_orders" },
       { source: "CustomerMerchantProject", target: "legacy_customertype" },
