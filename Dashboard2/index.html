@@ -27,23 +27,33 @@
   }
   .wrap{height:100vh;display:flex;flex-direction:column;padding:1.8vh 1.6vw;gap:1.4vh;}
 
-  header{display:flex;justify-content:space-between;align-items:center;flex:0 0 auto;padding-bottom:1.2vh;position:relative;}
+  header{display:flex;justify-content:space-between;align-items:center;flex:0 0 auto;padding-bottom:1.2vh;position:relative;gap:1.5vw;}
   header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--blue2),var(--cyan) 40%,transparent 85%);opacity:.55;}
 
-  .logo{display:flex;flex-direction:column;line-height:1;flex:0 0 auto;}
-  .logo-main{font-family:'Archivo',sans-serif;font-weight:900;font-style:italic;font-size:5.4vh;letter-spacing:-1.5px;color:#fff;position:relative;}
+  /* Font sizes below use clamp(min, vw-scaled, max) instead of plain vh so
+     they scale with available WIDTH too, not just height — a plain vh value
+     can force a wrap on a narrower/zoomed viewport, and since header items
+     don't reserve extra height for a wrapped second line, that wrap visually
+     collides with the logo next to it. clamp() plus nowrap+ellipsis below
+     means it shrinks or truncates instead of ever wrapping into a neighbor. */
+  .logo{display:flex;flex-direction:column;line-height:1;flex:0 0 auto;min-width:0;}
+  .logo-main{font-family:'Archivo',sans-serif;font-weight:900;font-style:italic;font-size:clamp(2.2vh,4vw,5.4vh);letter-spacing:-1.5px;color:#fff;position:relative;white-space:nowrap;}
   .logo-main .logo-sub{font-size:0.56em;margin-left:1px;}
   .logo-main .logo-reg{font-size:0.28em;position:relative;top:-2.6em;left:1px;font-style:normal;font-weight:700;}
-  .campaign-line{flex:1 1 auto;text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:3.7vh;letter-spacing:2.5px;color:var(--cyan);text-transform:uppercase;text-shadow:0 0 22px rgba(34,211,238,0.7);}
+  .campaign-line{
+    flex:1 1 auto;min-width:0;text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:700;
+    font-size:clamp(1.1vh,1.7vw,3.7vh);letter-spacing:2.5px;color:var(--cyan);text-transform:uppercase;text-shadow:0 0 22px rgba(34,211,238,0.7);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
 
-  .head-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:0.6vh;}
-  .range{font-family:'IBM Plex Mono',monospace;font-size:1.55vh;color:var(--muted);}
-  .status{font-family:'IBM Plex Mono',monospace;font-size:1.35vh;color:var(--dim);}
+  .head-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:0.6vh;flex:0 0 auto;min-width:0;}
+  .range{font-family:'IBM Plex Mono',monospace;font-size:clamp(0.9vh,1.2vw,1.55vh);color:var(--muted);white-space:nowrap;}
+  .status{font-family:'IBM Plex Mono',monospace;font-size:clamp(0.8vh,1.05vw,1.35vh);color:var(--dim);white-space:nowrap;}
   .status.live{color:var(--cyan);text-shadow:0 0 10px rgba(34,211,238,0.5);} .status.err{color:var(--red);}
   button.refresh{
     background:linear-gradient(135deg,rgba(59,130,246,0.18),rgba(34,211,238,0.10));border:1px solid var(--border-hi);color:var(--blue2);
-    font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:1.3vh;padding:0.7vh 1.4vh;border-radius:20px;cursor:pointer;letter-spacing:1.5px;
-    transition:all .15s ease;
+    font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:clamp(0.8vh,1vw,1.3vh);padding:0.7vh 1.4vh;border-radius:20px;cursor:pointer;letter-spacing:1.5px;
+    transition:all .15s ease;white-space:nowrap;
   }
   button.refresh:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 18px rgba(34,211,238,0.35);}
 
