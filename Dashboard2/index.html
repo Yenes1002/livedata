@@ -44,11 +44,18 @@
   .logo-main{font-family:'Archivo',sans-serif;font-weight:900;font-style:italic;font-size:clamp(2.2vh,4vw,5.4vh);letter-spacing:-1.5px;color:#fff;position:relative;white-space:nowrap;}
   .logo-main .logo-sub{font-size:0.56em;margin-left:1px;}
   .logo-main .logo-reg{font-size:0.28em;position:relative;top:-2.6em;left:1px;font-style:normal;font-weight:700;}
-  .campaign-line{
-    flex:1 1 auto;min-width:0;text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:700;
-    font-size:clamp(1.6vh,2.35vw,3.8vh);letter-spacing:2px;color:var(--blue-light);text-transform:uppercase;text-shadow:0 0 22px rgba(106,168,255,0.7);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+
+  .title-center{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .title-line{
+    text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:700;
+    letter-spacing:2px;text-transform:uppercase;
+    background:linear-gradient(100deg,var(--blue-white) 5%,var(--blue-light) 45%,var(--blue2) 75%,var(--blue-pale) 95%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 0 18px rgba(106,168,255,0.6));
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
   }
+  .title-line1{font-size:clamp(1.6vh,2.3vw,3.6vh);}
+  .title-sparkle{color:var(--blue-pale);-webkit-text-fill-color:var(--blue-pale);}
 
   .head-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:0.6vh;flex:0 0 auto;min-width:0;}
   .range{font-family:'IBM Plex Mono',monospace;font-size:clamp(0.9vh,1.2vw,1.55vh);color:var(--muted);white-space:nowrap;}
@@ -103,17 +110,34 @@
   .pill.flat{background:rgba(169,188,224,0.14);color:var(--dim);}
   .pill.new{background:rgba(106,168,255,0.18);color:var(--blue-light);letter-spacing:1px;}
 
-  .rank-grid{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);align-items:end;gap:0.7vh;}
+  .rank-grid{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);align-items:end;gap:0.9vh;padding-top:1.6vh;}
+  /* .rank-cell carries the podium height tier and stays overflow:visible so
+     the medal badge can pop out above it. The actual card is a separate
+     absolutely-positioned .rank-block INSIDE the cell with overflow:hidden —
+     giving the cell itself overflow:visible (as before) let text bleed into
+     neighboring cards whenever a block got too short for its content. */
+  .rank-cell{position:relative;min-width:0;}
+  .rank-cell.pos-1{height:100%;}
+  .rank-cell.pos-2{height:80%;}
+  .rank-cell.pos-3{height:64%;}
+  .rank-cell.pos-empty{height:64%;}
+
   .rank-block{
-    border-radius:1vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
-    padding:0.5vh 0.3vh;overflow:hidden;min-width:0;border:1px solid rgba(255,255,255,0.1);
+    position:absolute;inset:0;overflow:hidden;border-radius:1.6vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    padding:1.4vh 0.3vh 0.6vh;border:1px solid rgba(255,255,255,0.12);
   }
-  .rank-block.pos-1{height:100%;background:linear-gradient(175deg,var(--blue-white) -30%,var(--blue2) 30%,var(--blue) 95%);box-shadow:0 0 26px rgba(79,155,245,0.55),inset 0 1px 0 rgba(255,255,255,0.35);}
-  .rank-block.pos-2{height:80%;background:linear-gradient(175deg,rgba(106,168,255,0.55),rgba(28,70,176,0.4) 60%,rgba(14,35,80,0.85));}
-  .rank-block.pos-3{height:64%;background:linear-gradient(175deg,rgba(106,168,255,0.32),rgba(22,50,110,0.4) 60%,rgba(8,20,40,0.8));}
-  .rank-block.pos-empty{height:64%;background:rgba(255,255,255,0.02);border-style:dashed;}
+  .rank-block.pos-1{background:linear-gradient(175deg,var(--blue-white) -30%,var(--blue2) 30%,var(--blue) 95%);box-shadow:0 0 26px rgba(79,155,245,0.55),inset 0 1px 0 rgba(255,255,255,0.35);}
+  .rank-block.pos-2{background:linear-gradient(175deg,rgba(106,168,255,0.55),rgba(28,70,176,0.4) 60%,rgba(14,35,80,0.85));}
+  .rank-block.pos-3{background:linear-gradient(175deg,rgba(106,168,255,0.32),rgba(22,50,110,0.4) 60%,rgba(8,20,40,0.8));}
+  .rank-block.pos-empty{background:rgba(255,255,255,0.02);border-style:dashed;}
+
+  .rank-badge{
+    position:absolute;top:-1.9vh;left:50%;transform:translateX(-50%);z-index:2;
+    font-size:3.1vh;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+  }
+
   .rank-block-head{display:flex;align-items:center;justify-content:center;gap:0.5vh;margin-bottom:0.6vh;}
-  .rank-circle{font-family:'Fraunces',serif;font-weight:800;font-size:1.5vh;color:#fff;}
   .rank-name{font-family:'Inter',sans-serif;font-weight:800;font-size:1.55vh;color:#fff;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
   .rank-amount{font-family:'Fraunces',serif;font-weight:900;font-size:1.55vh;color:rgba(255,255,255,0.92);margin-top:0.6vh;white-space:nowrap;}
 
@@ -128,9 +152,11 @@
     <div class="logo">
       <span class="logo-main">CTG<span class="logo-sub">4u</span><span class="logo-reg">®</span></span>
     </div>
-    <div class="campaign-line">巅峰购物节 · SALES BONANZA · 24小时业绩挑战</div>
+    <div class="title-center">
+      <div class="title-line title-line1"><span class="title-sparkle">✦</span> 巅峰购物节 · SALES BONANZA · 24小时业绩挑战 <span class="title-sparkle">✦</span></div>
+    </div>
     <div class="head-right">
-      <div class="range" id="rangeLabel">活动: 3/8/2026 13:00 → 4/8/2026 13:00</div>
+      <div class="range" id="rangeLabel">活动: 5/8/2026 13:00 → 6/8/2026 13:00</div>
       <div class="status" id="statusLabel">connecting to database…</div>
       <button class="refresh" id="refreshBtn">↻ REFRESH ALL</button>
     </div>
@@ -191,7 +217,7 @@ const CONFIG = {
   SUPABASE_ANON_KEY: "sb_publishable_rfrK-U1ScPh1EuOdwURB9g_rgeFmdoe",
   // Update this when the real event dates are set — the countdown and its
   // end-date label are both derived from this single value.
-  EVENT_END_ISO: "2026-08-04T13:00:00+08:00",
+  EVENT_END_ISO: "2026-08-06T13:00:00+08:00",
 };
 
 const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
@@ -256,7 +282,7 @@ function errorBox(id, err, retryFn){
   el.appendChild(box);
 }
 
-const RANK_CIRCLES = ['①','②','③'];
+const MEDALS = ['🥇', '🥈', '🥉'];
 
 function renderBlocks(sectionKey, id, items, amountFn){
   const el = document.getElementById(id); el.innerHTML = '';
@@ -264,15 +290,19 @@ function renderBlocks(sectionKey, id, items, amountFn){
   const badges = moveBadge(sectionKey, items.map(it => it.project));
   const grid = document.createElement('div'); grid.className = 'rank-grid';
   items.forEach((it, i) => {
-    const block = document.createElement('div'); block.className = 'rank-block pos-' + (i + 1);
-    block.innerHTML = `<div class="rank-block-head"><span class="rank-circle">${RANK_CIRCLES[i]}</span>${moveBadgeHtml(badges[i])}</div>
-      <div class="rank-name">${it.project}</div>
-      <div class="rank-amount">${amountFn(it)}</div>`;
-    grid.appendChild(block);
+    const cell = document.createElement('div'); cell.className = 'rank-cell pos-' + (i + 1);
+    cell.innerHTML = `<div class="rank-badge">${MEDALS[i]}</div>
+      <div class="rank-block pos-${i + 1}">
+        <div class="rank-block-head">${moveBadgeHtml(badges[i])}</div>
+        <div class="rank-name">${it.project}</div>
+        <div class="rank-amount">${amountFn(it)}</div>
+      </div>`;
+    grid.appendChild(cell);
   });
   for (let i = items.length; i < 3; i++){
-    const empty = document.createElement('div'); empty.className = 'rank-block pos-empty';
-    grid.appendChild(empty);
+    const cell = document.createElement('div'); cell.className = 'rank-cell pos-empty';
+    cell.innerHTML = '<div class="rank-block pos-empty"></div>';
+    grid.appendChild(cell);
   }
   el.appendChild(grid);
 }
