@@ -159,7 +159,7 @@ const CONFIG = {
   SUPABASE_ANON_KEY: "sb_publishable_rfrK-U1ScPh1EuOdwURB9g_rgeFmdoe",
 };
 
-const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
 const statusEl = document.getElementById('statusLabel');
 function setStatus(t, c){ statusEl.textContent = t; statusEl.className = 'status' + (c ? ' ' + c : ''); }
@@ -239,7 +239,7 @@ async function loadAll(){
     document.getElementById(id).innerHTML = '<div class="loading-msg">▸ 查询中…</div><div class="skeleton"></div>';
   });
 
-  const { data, error } = await supabase.rpc('ctg_leaderboard_kpis');
+  const { data, error } = await sb.rpc('ctg_leaderboard_kpis');
 
   if (error){
     setStatus('查询失败', 'err');
