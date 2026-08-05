@@ -257,12 +257,6 @@ function errorBox(id, err, retryFn){
 }
 
 const RANK_CIRCLES = ['①','②','③'];
-function maskName(name){
-  if (!name) return name;
-  const visible = name.slice(0, 3);
-  const stars = '*'.repeat(Math.max(name.length - 3, 0));
-  return visible + stars;
-}
 
 function renderBlocks(sectionKey, id, items, amountFn){
   const el = document.getElementById(id); el.innerHTML = '';
@@ -272,7 +266,7 @@ function renderBlocks(sectionKey, id, items, amountFn){
   items.forEach((it, i) => {
     const block = document.createElement('div'); block.className = 'rank-block pos-' + (i + 1);
     block.innerHTML = `<div class="rank-block-head"><span class="rank-circle">${RANK_CIRCLES[i]}</span>${moveBadgeHtml(badges[i])}</div>
-      <div class="rank-name">${maskName(it.project)}</div>
+      <div class="rank-name">${it.project}</div>
       <div class="rank-amount">${amountFn(it)}</div>`;
     grid.appendChild(block);
   });
