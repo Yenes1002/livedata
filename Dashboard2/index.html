@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CTG 巅峰购物嘉年华排行榜</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Archivo:ital,wght@1,800;1,900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
@@ -16,141 +16,126 @@
     --text:#F1F6FF; --muted:#9FB0D9; --dim:#5E6E96;
   }
   *{box-sizing:border-box;}
-  html{background:var(--bg);}
+  html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);}
   body{
-    margin:0;color:var(--text);font-family:'Inter',sans-serif;padding:40px 20px 90px;position:relative;overflow-x:hidden;
+    color:var(--text);font-family:'Inter',sans-serif;position:relative;
     background:
       radial-gradient(900px 560px at 12% -8%, rgba(59,130,246,0.38), transparent 60%),
       radial-gradient(800px 520px at 108% 8%, rgba(34,211,238,0.22), transparent 55%),
       radial-gradient(1000px 700px at 50% 115%, rgba(99,102,241,0.28), transparent 60%),
       var(--bg);
   }
-  .wrap{max-width:1120px;margin:0 auto;position:relative;}
+  .wrap{height:100vh;display:flex;flex-direction:column;padding:1.8vh 1.6vw;gap:1.4vh;}
 
-  header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:18px;padding-bottom:26px;margin-bottom:30px;position:relative;}
+  header{display:flex;justify-content:space-between;align-items:center;flex:0 0 auto;padding-bottom:1.2vh;position:relative;}
   header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--blue2),var(--cyan) 40%,transparent 85%);opacity:.55;}
-  .title{font-family:'Fraunces',serif;font-weight:900;font-size:38px;letter-spacing:-1px;line-height:1.05;
-    background:linear-gradient(100deg,#FFFFFF 10%,var(--blue2) 55%,var(--cyan) 90%);
-    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-    filter:drop-shadow(0 0 22px rgba(96,165,250,0.35));
-  }
-  .title .eyebrow{display:block;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12px;letter-spacing:4px;color:var(--cyan);text-transform:uppercase;margin-bottom:8px;-webkit-text-fill-color:var(--cyan);text-shadow:0 0 14px rgba(34,211,238,0.6);}
-  .range{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted);text-align:right;}
-  .status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);text-align:right;margin-top:4px;}
+
+  .logo{display:flex;flex-direction:column;line-height:1;flex:0 0 auto;}
+  .logo-main{font-family:'Archivo',sans-serif;font-weight:900;font-style:italic;font-size:5.4vh;letter-spacing:-1.5px;color:#fff;position:relative;}
+  .logo-main .logo-sub{font-size:0.56em;margin-left:1px;}
+  .logo-main .logo-reg{font-size:0.28em;position:relative;top:-2.6em;left:1px;font-style:normal;font-weight:700;}
+  .campaign-line{flex:1 1 auto;text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:2.9vh;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;text-shadow:0 0 16px rgba(34,211,238,0.55);}
+
+  .head-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:0.6vh;}
+  .range{font-family:'IBM Plex Mono',monospace;font-size:1.55vh;color:var(--muted);}
+  .status{font-family:'IBM Plex Mono',monospace;font-size:1.35vh;color:var(--dim);}
   .status.live{color:var(--cyan);text-shadow:0 0 10px rgba(34,211,238,0.5);} .status.err{color:var(--red);}
   button.refresh{
     background:linear-gradient(135deg,rgba(59,130,246,0.18),rgba(34,211,238,0.10));border:1px solid var(--border-hi);color:var(--blue2);
-    font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:11px;padding:8px 16px;border-radius:20px;cursor:pointer;margin-top:8px;letter-spacing:1.5px;
+    font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:1.3vh;padding:0.7vh 1.4vh;border-radius:20px;cursor:pointer;letter-spacing:1.5px;
     transition:all .15s ease;
   }
-  button.refresh:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 18px rgba(34,211,238,0.35);transform:translateY(-1px);}
+  button.refresh:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 18px rgba(34,211,238,0.35);}
 
-  section{margin-bottom:40px;}
-  .sec-head{display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+  .kpi-grid{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:1.4vh 1.2vw;}
+  section{display:flex;flex-direction:column;min-height:0;}
+  .sec-head{display:flex;align-items:center;gap:0.9vh;margin-bottom:0.8vh;flex:0 0 auto;}
   .sec-num{
-    font-family:'Fraunces',serif;font-weight:900;font-size:40px;line-height:1;
+    font-family:'Fraunces',serif;font-weight:900;font-size:2.6vh;line-height:1;
     background:linear-gradient(160deg,var(--blue2),var(--violet));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-    filter:drop-shadow(0 0 16px rgba(96,165,250,0.45));
+    filter:drop-shadow(0 0 12px rgba(96,165,250,0.45));
   }
-  .sec-title{font-family:'Inter',sans-serif;font-weight:800;font-size:19px;letter-spacing:.3px;text-transform:uppercase;}
-  .sec-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);margin-left:auto;letter-spacing:1px;text-transform:uppercase;}
+  .sec-title-wrap{display:flex;flex-direction:column;gap:1px;min-width:0;}
+  .sec-title{font-family:'Inter',sans-serif;font-weight:800;font-size:1.55vh;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sec-eng{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:1vh;letter-spacing:1.5px;color:var(--cyan);text-transform:uppercase;}
 
   .card{
-    background:linear-gradient(160deg,var(--card-hi),var(--card));border:1px solid var(--border);border-radius:16px;padding:10px 22px;
+    flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:space-between;
+    background:linear-gradient(160deg,var(--card-hi),var(--card));border:1px solid var(--border);border-radius:1.2vh;padding:0.4vh 1.3vh;
     box-shadow:0 20px 45px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
-    backdrop-filter:blur(10px);
   }
-  .row{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid rgba(96,148,255,0.12);font-family:'IBM Plex Mono',monospace;font-size:14px;gap:14px;}
+  .row{display:flex;justify-content:space-between;align-items:center;flex:1 1 0;min-height:0;border-bottom:1px solid rgba(96,148,255,0.12);font-family:'IBM Plex Mono',monospace;gap:1vh;}
   .row:last-child{border-bottom:none;}
-  .row.rank-1{margin:0 -22px;padding:16px 22px;border-radius:12px;background:linear-gradient(90deg,rgba(251,191,36,0.14),transparent 70%);border-bottom:1px solid rgba(251,191,36,0.18);}
+  .row.rank-1{margin:0 -1.3vh;padding:0 1.3vh;border-radius:1vh;background:linear-gradient(90deg,rgba(251,191,36,0.14),transparent 70%);border-bottom:1px solid rgba(251,191,36,0.18);}
   .row .label{color:var(--text);font-weight:600;display:flex;align-items:center;flex:1;min-width:0;}
-  .row .label-text{min-width:0;}
-  .row .label .name{display:block;}
-  .row .label .sub{color:var(--dim);font-size:11.5px;display:block;margin-top:4px;font-family:'Inter',sans-serif;font-weight:400;}
-  .row .amount{font-weight:800;color:var(--text);white-space:nowrap;font-size:16px;}
-  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-left:10px;font-family:'IBM Plex Mono',monospace;}
+  .row .label-text{min-width:0;flex:1;}
+  .row .label .name{display:block;font-size:1.5vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row .label .sub{color:var(--dim);font-size:1.05vh;display:block;margin-top:0.2vh;font-family:'Inter',sans-serif;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row .amount{font-weight:800;color:var(--text);white-space:nowrap;font-size:1.5vh;flex:0 0 auto;}
+  .pill{display:inline-block;padding:0.2vh 0.9vh;border-radius:20px;font-size:1vh;font-weight:700;margin-left:0.8vh;font-family:'IBM Plex Mono',monospace;}
   .pill.up{background:rgba(52,211,153,0.14);color:var(--green);}
   .pill.down{background:rgba(248,113,113,0.14);color:var(--red);}
   .pill.flat{background:rgba(159,176,217,0.10);color:var(--dim);}
   .pill.new{background:rgba(34,211,238,0.14);color:var(--cyan);letter-spacing:1px;}
 
   .rank{
-    display:inline-flex;width:34px;height:34px;align-items:center;justify-content:center;border-radius:50%;font-size:14px;font-weight:800;
-    margin-right:14px;flex-shrink:0;font-family:'Fraunces',serif;
+    display:inline-flex;width:2.6vh;height:2.6vh;align-items:center;justify-content:center;border-radius:50%;font-size:1.2vh;font-weight:800;
+    margin-right:1vh;flex-shrink:0;font-family:'Fraunces',serif;
   }
-  .rank-1 .rank{background:linear-gradient(150deg,var(--gold-bright),var(--gold));color:#3B2405;box-shadow:0 0 20px rgba(251,191,36,0.65);}
-  .rank-2 .rank{background:linear-gradient(150deg,#EAF1FF,var(--silver));color:#1E2942;box-shadow:0 0 14px rgba(203,213,225,0.4);}
-  .rank-3 .rank{background:linear-gradient(150deg,#F3B98A,var(--bronze));color:#3B2205;box-shadow:0 0 14px rgba(224,153,94,0.4);}
+  .rank-1 .rank{background:linear-gradient(150deg,var(--gold-bright),var(--gold));color:#3B2405;box-shadow:0 0 14px rgba(251,191,36,0.65);}
+  .rank-2 .rank{background:linear-gradient(150deg,#EAF1FF,var(--silver));color:#1E2942;box-shadow:0 0 10px rgba(203,213,225,0.4);}
+  .rank-3 .rank{background:linear-gradient(150deg,#F3B98A,var(--bronze));color:#3B2205;box-shadow:0 0 10px rgba(224,153,94,0.4);}
 
-  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px;}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
-  @media(max-width:800px){.grid3{grid-template-columns:1fr;} .grid2{grid-template-columns:1fr;}}
-  .big-stat{padding:22px 24px 24px;text-align:center;position:relative;overflow:hidden;}
-  .big-stat::before{content:"";position:absolute;inset:0;background:radial-gradient(120px 90px at 50% 0%,rgba(96,165,250,0.16),transparent 70%);pointer-events:none;}
-  .big-stat .label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:2.5px;font-weight:700;}
-  .big-stat .value{
-    font-family:'Fraunces',serif;font-size:26px;font-weight:800;margin:10px 0 4px;line-height:1.15;
-    background:linear-gradient(120deg,#FFFFFF,var(--blue2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-  }
-  .big-stat .value.amount-lg{font-size:30px;background:linear-gradient(120deg,var(--gold-bright),var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 18px rgba(251,191,36,0.35));}
-  .big-stat .detail{font-size:12px;color:var(--muted);margin-top:10px;font-family:'IBM Plex Mono',monospace;}
-
-  .skeleton{height:16px;background:linear-gradient(90deg,rgba(96,148,255,0.08) 25%,rgba(96,148,255,0.22) 37%,rgba(96,148,255,0.08) 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite;border-radius:4px;margin:8px 0;}
-  @keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
-  .loading-msg{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);padding:14px 0;}
-  .error-box{border:1px solid var(--red);border-radius:10px;padding:14px 16px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--red);background:rgba(248,113,113,0.06);}
-  .error-box button{margin-top:8px;}
-
-  footer{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);margin-top:56px;letter-spacing:2px;text-transform:uppercase;}
+  .loading-msg{font-family:'IBM Plex Mono',monospace;font-size:1.3vh;color:var(--dim);padding:1vh 0;}
+  .error-box{border:1px solid var(--red);border-radius:1vh;padding:1vh 1.2vh;font-family:'IBM Plex Mono',monospace;font-size:1.1vh;color:var(--red);background:rgba(248,113,113,0.06);}
+  .error-box button{margin-top:0.6vh;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="title">
-      <span class="eyebrow">CTG 巅峰购物嘉年华</span>
-      排行榜 Dashboard
+    <div class="logo">
+      <span class="logo-main">CTG<span class="logo-sub">4u</span><span class="logo-reg">®</span></span>
     </div>
-    <div>
+    <div class="campaign-line">巅峰购物节 · SALES BONANZA · 24小时极限挑战</div>
+    <div class="head-right">
       <div class="range" id="rangeLabel">活动: 3/8/2026 13:00 → 4/8/2026 13:00</div>
       <div class="status" id="statusLabel">connecting to database…</div>
       <button class="refresh" id="refreshBtn">↻ REFRESH ALL</button>
     </div>
   </header>
 
-  <section id="sec1">
-    <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">2025 最高单日 vs 2026 活动 Sales</span><span class="sec-sub">Top 3 by Diff RM</span></div>
-    <div class="card" id="sec1-body"><div class="loading-msg">▸ 等待中…</div></div>
-  </section>
+  <div class="kpi-grid">
+    <section id="sec1">
+      <div class="sec-head"><span class="sec-num">01</span><span class="sec-title-wrap"><span class="sec-title">销售额增长率（%）</span><span class="sec-eng">Growth Excellence</span></span></div>
+      <div class="card" id="sec1-body"><div class="loading-msg">▸ 等待中…</div></div>
+    </section>
 
-  <section id="sec2">
-    <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">2025 活动 vs 2026 活动</span><span class="sec-sub">Top 3 by Diff RM</span></div>
-    <div class="card" id="sec2-body"><div class="loading-msg">▸ 等待中…</div></div>
-  </section>
+    <section id="sec2">
+      <div class="sec-head"><span class="sec-num">02</span><span class="sec-title-wrap"><span class="sec-title">销售增长（RM）</span><span class="sec-eng">Revenue Excellence</span></span></div>
+      <div class="card" id="sec2-body"><div class="loading-msg">▸ 等待中…</div></div>
+    </section>
 
-  <div class="grid2">
     <section id="sec5">
-      <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Orders 最多</span></div>
-      <div class="card big-stat" id="sec5-body"><div class="loading-msg">▸ 等待中…</div></div>
+      <div class="sec-head"><span class="sec-num">03</span><span class="sec-title-wrap"><span class="sec-title">最多订货量</span><span class="sec-eng">Volume Excellence</span></span></div>
+      <div class="card" id="sec5-body"><div class="loading-msg">▸ 等待中…</div></div>
     </section>
+
     <section id="sec3">
-      <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">AOV 最高</span></div>
-      <div class="card big-stat" id="sec3-body"><div class="loading-msg">▸ 等待中…</div></div>
+      <div class="sec-head"><span class="sec-num">04</span><span class="sec-title-wrap"><span class="sec-title">最高AOV</span><span class="sec-eng">Value Excellence</span></span></div>
+      <div class="card" id="sec3-body"><div class="loading-msg">▸ 等待中…</div></div>
     </section>
-  </div>
 
-  <div class="grid2">
     <section id="sec4">
-      <div class="sec-head"><span class="sec-num">05</span><span class="sec-title">Total Sales</span></div>
-      <div class="card big-stat" id="sec4-body"><div class="loading-msg">▸ 等待中…</div></div>
+      <div class="sec-head"><span class="sec-num">05</span><span class="sec-title-wrap"><span class="sec-title">最高销售额</span><span class="sec-eng">Sales Excellence</span></span></div>
+      <div class="card" id="sec4-body"><div class="loading-msg">▸ 等待中…</div></div>
     </section>
+
     <section id="sec6">
-      <div class="sec-head"><span class="sec-num">06</span><span class="sec-title">Repeat Sales 最高</span></div>
-      <div class="card big-stat" id="sec6-body"><div class="loading-msg">▸ 等待中…</div></div>
+      <div class="sec-head"><span class="sec-num">06</span><span class="sec-title-wrap"><span class="sec-title">最高回购 (RM)</span><span class="sec-eng">Loyalty Excellence</span></span></div>
+      <div class="card" id="sec6-body"><div class="loading-msg">▸ 等待中…</div></div>
     </section>
   </div>
-
-  <footer>SUPABASE JS CLIENT · DIRECT QUERY · 实时数据</footer>
 </div>
 
 <script>
@@ -164,6 +149,7 @@ const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANO
 const statusEl = document.getElementById('statusLabel');
 function setStatus(t, c){ statusEl.textContent = t; statusEl.className = 'status' + (c ? ' ' + c : ''); }
 function rm(n){ if (n === null || n === undefined || isNaN(n)) return '—'; return 'RM ' + Number(n).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function pct(n){ if (n === null || n === undefined || isNaN(n)) return '—'; const s = n >= 0 ? '+' : ''; return s + Number(n).toFixed(2) + '%'; }
 function rankClass(i){ return i===0 ? 'rank-1' : i===1 ? 'rank-2' : i===2 ? 'rank-3' : ''; }
 
 // Tracks each Top-3 list's project order across refreshes (persisted so it
@@ -210,7 +196,7 @@ function renderKpi1(items){
     const row = document.createElement('div'); row.className = 'row ' + rankClass(i);
     const dateStr = it.sales_date ? `(${it.sales_date})` : '';
     row.innerHTML = `<span class="label"><span class="rank">${i+1}</span><span class="label-text"><span class="name">${it.project}</span><span class="sub">2025最高单日${dateStr} ${rm(it.best_2025_day)} → 2026活动 ${rm(it.event_sales_2026)}</span></span></span>
-      <span class="amount">${rm(it.diff_rm)}${moveBadgeHtml(badges[i])}</span>`;
+      <span class="amount">${pct(it.pct_growth)}${moveBadgeHtml(badges[i])}</span>`;
     el.appendChild(row);
   });
 }
@@ -221,22 +207,28 @@ function renderKpi2(items){
   const badges = moveBadge('kpi02', items.map(it => it.project));
   items.forEach((it, i) => {
     const row = document.createElement('div'); row.className = 'row ' + rankClass(i);
-    row.innerHTML = `<span class="label"><span class="rank">${i+1}</span><span class="label-text"><span class="name">${it.project}</span><span class="sub">2025活动 ${rm(it.sales_2025)} → 2026活动 ${rm(it.sales_2026)}</span></span></span>
+    row.innerHTML = `<span class="label"><span class="rank">${i+1}</span><span class="label-text"><span class="name">${it.project}</span><span class="sub">2025最高单日 ${rm(it.best_2025_day)} → 2026活动 ${rm(it.event_sales_2026)}</span></span></span>
       <span class="amount">${rm(it.diff_rm)}${moveBadgeHtml(badges[i])}</span>`;
     el.appendChild(row);
   });
 }
 
-function renderBigStat(id, project, valueStr, label, detail){
-  const el = document.getElementById(id);
-  if (!project){ el.innerHTML = '<div class="loading-msg">无数据</div>'; return; }
-  el.innerHTML = `<div class="label">${label}</div><div class="value">${project}</div><div class="value amount-lg">${valueStr}</div><div class="detail">${detail}</div>`;
+function renderTop3(sectionKey, id, items, subFn, amountFn){
+  const el = document.getElementById(id); el.innerHTML = '';
+  if (!items || !items.length){ el.innerHTML = '<div class="loading-msg">无数据</div>'; return; }
+  const badges = moveBadge(sectionKey, items.map(it => it.project));
+  items.forEach((it, i) => {
+    const row = document.createElement('div'); row.className = 'row ' + rankClass(i);
+    row.innerHTML = `<span class="label"><span class="rank">${i+1}</span><span class="label-text"><span class="name">${it.project}</span><span class="sub">${subFn(it)}</span></span></span>
+      <span class="amount">${amountFn(it)}${moveBadgeHtml(badges[i])}</span>`;
+    el.appendChild(row);
+  });
 }
 
 async function loadAll(){
   setStatus('查询中…');
   ['sec1-body','sec2-body','sec3-body','sec4-body','sec5-body','sec6-body'].forEach(id => {
-    document.getElementById(id).innerHTML = '<div class="loading-msg">▸ 查询中…</div><div class="skeleton"></div>';
+    document.getElementById(id).innerHTML = '<div class="loading-msg">▸ 查询中…</div>';
   });
 
   const { data, error } = await sb.rpc('ctg_leaderboard_kpis');
@@ -252,17 +244,21 @@ async function loadAll(){
   renderKpi1(data.kpi01);
   renderKpi2(data.kpi02);
 
-  const k3 = data.kpi03;
-  renderBigStat('sec3-body', k3 && k3.project, k3 ? rm(k3.aov) : '—', 'AOV', k3 ? `Sales ${rm(k3.sales)} ÷ ${k3.orders} orders` : '');
+  renderTop3('kpi03', 'sec3-body', data.kpi03,
+    it => `Sales ${rm(it.sales)} ÷ ${it.orders} orders`,
+    it => rm(it.aov));
 
-  const k4 = data.kpi04;
-  renderBigStat('sec4-body', k4 && k4.project, k4 ? rm(k4.sales) : '—', 'Sales', k4 ? `${k4.orders} orders` : '');
+  renderTop3('kpi04', 'sec4-body', data.kpi04,
+    it => `${it.orders} orders`,
+    it => rm(it.sales));
 
-  const k5 = data.kpi05;
-  renderBigStat('sec5-body', k5 && k5.project, k5 ? k5.orders + ' 单' : '—', 'Orders', k5 ? `Sales ${rm(k5.sales)}` : '');
+  renderTop3('kpi05', 'sec5-body', data.kpi05,
+    it => `Sales ${rm(it.sales)}`,
+    it => it.orders + ' 单');
 
-  const k6 = data.kpi06;
-  renderBigStat('sec6-body', k6 && k6.project, k6 ? rm(k6.repeat_sales) : '—', 'Repeat Sales', k6 ? `${k6.repeat_orders} 笔 repeat orders` : '');
+  renderTop3('kpi06', 'sec6-body', data.kpi06,
+    it => `${it.repeat_orders} 笔 repeat orders`,
+    it => rm(it.repeat_sales));
 
   setStatus('最后更新: ' + new Date(data.generated_at).toLocaleTimeString('zh-CN'), 'live');
 }
