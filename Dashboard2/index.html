@@ -9,11 +9,15 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
-    --bg:#050915; --card:rgba(18,28,54,0.68); --card-hi:rgba(26,40,76,0.78); --border:rgba(96,148,255,0.22); --border-hi:rgba(110,168,255,0.5);
-    --blue:#3B82F6; --blue2:#60A5FA; --cyan:#22D3EE; --violet:#818CF8;
-    --gold:#FBBF24; --gold-bright:#FDE68A; --silver:#CBD5E1; --bronze:#E0995E;
-    --green:#34D399; --red:#F87171;
-    --text:#F1F6FF; --muted:#9FB0D9; --dim:#5E6E96;
+    /* Palette below is the client's approved blue scheme — keep all colors
+       within these swatches (no cyan/gold/violet outside of this set). */
+    --bg:#060d1e;
+    --card:rgba(8,20,40,0.72); --card-hi:rgba(14,35,80,0.82);
+    --border:rgba(59,130,246,0.3); --border-hi:rgba(120,170,255,0.55);
+    --blue:#2f7ff0; --blue2:#4f9bf5; --blue-deep:#1f5fd8; --blue-deep2:#1e4fb0;
+    --blue-light:#6aa8ff; --blue-pale:#9cc4ff; --blue-white:#cfe2ff;
+    --green:#35d08a; --green-bright:#7be8b6; --red:#ff9aa8;
+    --text:#ffffff; --text-body:#e8f0ff; --muted:#a9bce0; --label:#7c93bf; --dim:#5f77a8;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);}
@@ -21,14 +25,14 @@
     color:var(--text);font-family:'Inter',sans-serif;position:relative;
     background:
       radial-gradient(900px 560px at 12% -8%, rgba(59,130,246,0.38), transparent 60%),
-      radial-gradient(800px 520px at 108% 8%, rgba(34,211,238,0.22), transparent 55%),
-      radial-gradient(1000px 700px at 50% 115%, rgba(99,102,241,0.28), transparent 60%),
+      radial-gradient(800px 520px at 108% 8%, rgba(106,168,255,0.22), transparent 55%),
+      radial-gradient(1000px 700px at 50% 115%, rgba(37,99,235,0.28), transparent 60%),
       var(--bg);
   }
   .wrap{height:100vh;display:flex;flex-direction:column;padding:1.8vh 1.6vw;gap:1.4vh;}
 
   header{display:flex;justify-content:space-between;align-items:center;flex:0 0 auto;padding-bottom:1.2vh;position:relative;gap:1.5vw;}
-  header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--blue2),var(--cyan) 40%,transparent 85%);opacity:.55;}
+  header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--blue2),var(--blue-light) 40%,transparent 85%);opacity:.55;}
 
   /* Font sizes below use clamp(min, vw-scaled, max) instead of plain vh so
      they scale with available WIDTH too, not just height — a plain vh value
@@ -42,20 +46,20 @@
   .logo-main .logo-reg{font-size:0.28em;position:relative;top:-2.6em;left:1px;font-style:normal;font-weight:700;}
   .campaign-line{
     flex:1 1 auto;min-width:0;text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:700;
-    font-size:clamp(1.6vh,2.35vw,3.8vh);letter-spacing:2px;color:var(--cyan);text-transform:uppercase;text-shadow:0 0 22px rgba(34,211,238,0.7);
+    font-size:clamp(1.6vh,2.35vw,3.8vh);letter-spacing:2px;color:var(--blue-light);text-transform:uppercase;text-shadow:0 0 22px rgba(106,168,255,0.7);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
 
   .head-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:0.6vh;flex:0 0 auto;min-width:0;}
   .range{font-family:'IBM Plex Mono',monospace;font-size:clamp(0.9vh,1.2vw,1.55vh);color:var(--muted);white-space:nowrap;}
   .status{font-family:'IBM Plex Mono',monospace;font-size:clamp(0.8vh,1.05vw,1.35vh);color:var(--dim);white-space:nowrap;}
-  .status.live{color:var(--cyan);text-shadow:0 0 10px rgba(34,211,238,0.5);} .status.err{color:var(--red);}
+  .status.live{color:var(--blue-light);text-shadow:0 0 10px rgba(106,168,255,0.5);} .status.err{color:var(--red);}
   button.refresh{
-    background:linear-gradient(135deg,rgba(59,130,246,0.18),rgba(34,211,238,0.10));border:1px solid var(--border-hi);color:var(--blue2);
+    background:linear-gradient(135deg,rgba(59,130,246,0.18),rgba(106,168,255,0.10));border:1px solid var(--border-hi);color:var(--blue2);
     font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:clamp(0.8vh,1vw,1.3vh);padding:0.7vh 1.4vh;border-radius:20px;cursor:pointer;letter-spacing:1.5px;
     transition:all .15s ease;white-space:nowrap;
   }
-  button.refresh:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 18px rgba(34,211,238,0.35);}
+  button.refresh:hover{border-color:var(--blue-light);color:var(--blue-light);box-shadow:0 0 18px rgba(106,168,255,0.35);}
 
   .countdown-bar{
     flex:0 0 auto;display:flex;justify-content:space-between;align-items:center;gap:1.5vw;
@@ -69,10 +73,10 @@
   .countdown-unit{display:flex;flex-direction:column;align-items:center;gap:0.4vh;}
   .countdown-num{
     font-family:'Fraunces',serif;font-weight:900;font-size:3.6vh;color:var(--text);min-width:5.5vh;text-align:center;
-    background:linear-gradient(165deg,rgba(96,165,250,0.28),rgba(30,41,73,0.65));border:1px solid var(--border-hi);border-radius:0.9vh;
+    background:linear-gradient(165deg,rgba(79,155,245,0.28),rgba(14,35,80,0.75));border:1px solid var(--border-hi);border-radius:0.9vh;
     padding:0.3vh 0.6vh;box-shadow:inset 0 1px 0 rgba(255,255,255,0.12),0 6px 16px -8px rgba(0,0,0,0.6);
   }
-  .countdown-unit.accent .countdown-num{background:linear-gradient(165deg,var(--blue2),var(--blue));color:#fff;box-shadow:0 0 18px rgba(96,165,250,0.55),inset 0 1px 0 rgba(255,255,255,0.3);}
+  .countdown-unit.accent .countdown-num{background:linear-gradient(165deg,var(--blue2),var(--blue));color:#fff;box-shadow:0 0 18px rgba(79,155,245,0.55),inset 0 1px 0 rgba(255,255,255,0.3);}
   .countdown-label{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:0.95vh;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;}
   .countdown-colon{font-family:'Fraunces',serif;font-weight:900;font-size:2.6vh;color:var(--dim);margin-top:-1.6vh;}
 
@@ -81,12 +85,12 @@
   .sec-head{display:flex;align-items:center;gap:0.9vh;margin-bottom:0.8vh;flex:0 0 auto;}
   .sec-num{
     font-family:'Fraunces',serif;font-weight:900;font-size:2.6vh;line-height:1;
-    background:linear-gradient(160deg,var(--blue2),var(--violet));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-    filter:drop-shadow(0 0 12px rgba(96,165,250,0.45));
+    background:linear-gradient(160deg,var(--blue2),var(--blue-deep));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 0 12px rgba(79,155,245,0.45));
   }
   .sec-title-wrap{display:flex;flex-direction:column;gap:1px;min-width:0;}
   .sec-title{font-family:'Inter',sans-serif;font-weight:800;font-size:1.55vh;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .sec-eng{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:1vh;letter-spacing:1.5px;color:var(--cyan);text-transform:uppercase;}
+  .sec-eng{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:1vh;letter-spacing:1.5px;color:var(--blue-light);text-transform:uppercase;}
 
   .card{
     flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:space-between;
@@ -94,19 +98,19 @@
     box-shadow:0 20px 45px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
   }
   .pill{display:inline-block;padding:0.15vh 0.7vh;border-radius:20px;font-size:0.9vh;font-weight:700;font-family:'IBM Plex Mono',monospace;}
-  .pill.up{background:rgba(52,211,153,0.18);color:var(--green);}
-  .pill.down{background:rgba(248,113,113,0.18);color:var(--red);}
-  .pill.flat{background:rgba(159,176,217,0.14);color:var(--dim);}
-  .pill.new{background:rgba(34,211,238,0.18);color:var(--cyan);letter-spacing:1px;}
+  .pill.up{background:rgba(53,208,138,0.18);color:var(--green);}
+  .pill.down{background:rgba(255,154,168,0.18);color:var(--red);}
+  .pill.flat{background:rgba(169,188,224,0.14);color:var(--dim);}
+  .pill.new{background:rgba(106,168,255,0.18);color:var(--blue-light);letter-spacing:1px;}
 
   .rank-grid{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);align-items:end;gap:0.7vh;}
   .rank-block{
     border-radius:1vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
     padding:0.5vh 0.3vh;overflow:hidden;min-width:0;border:1px solid rgba(255,255,255,0.1);
   }
-  .rank-block.pos-1{height:100%;background:linear-gradient(175deg,var(--gold-bright) -20%,var(--blue2) 25%,var(--blue) 95%);box-shadow:0 0 26px rgba(96,165,250,0.55),inset 0 1px 0 rgba(255,255,255,0.35);}
-  .rank-block.pos-2{height:80%;background:linear-gradient(175deg,rgba(120,150,220,0.7),rgba(40,55,100,0.55) 60%,rgba(22,30,56,0.85));}
-  .rank-block.pos-3{height:64%;background:linear-gradient(175deg,rgba(100,125,195,0.45),rgba(34,45,82,0.5) 60%,rgba(20,27,50,0.8));}
+  .rank-block.pos-1{height:100%;background:linear-gradient(175deg,var(--blue-white) -30%,var(--blue2) 30%,var(--blue) 95%);box-shadow:0 0 26px rgba(79,155,245,0.55),inset 0 1px 0 rgba(255,255,255,0.35);}
+  .rank-block.pos-2{height:80%;background:linear-gradient(175deg,rgba(106,168,255,0.55),rgba(28,70,176,0.4) 60%,rgba(14,35,80,0.85));}
+  .rank-block.pos-3{height:64%;background:linear-gradient(175deg,rgba(106,168,255,0.32),rgba(22,50,110,0.4) 60%,rgba(8,20,40,0.8));}
   .rank-block.pos-empty{height:64%;background:rgba(255,255,255,0.02);border-style:dashed;}
   .rank-block-head{display:flex;align-items:center;justify-content:center;gap:0.5vh;margin-bottom:0.6vh;}
   .rank-circle{font-family:'Fraunces',serif;font-weight:800;font-size:1.5vh;color:#fff;}
@@ -114,7 +118,7 @@
   .rank-amount{font-family:'Fraunces',serif;font-weight:900;font-size:1.55vh;color:rgba(255,255,255,0.92);margin-top:0.6vh;white-space:nowrap;}
 
   .loading-msg{font-family:'IBM Plex Mono',monospace;font-size:1.3vh;color:var(--dim);padding:1vh 0;}
-  .error-box{border:1px solid var(--red);border-radius:1vh;padding:1vh 1.2vh;font-family:'IBM Plex Mono',monospace;font-size:1.1vh;color:var(--red);background:rgba(248,113,113,0.06);}
+  .error-box{border:1px solid var(--red);border-radius:1vh;padding:1vh 1.2vh;font-family:'IBM Plex Mono',monospace;font-size:1.1vh;color:var(--red);background:rgba(255,154,168,0.06);}
   .error-box button{margin-top:0.6vh;}
 </style>
 </head>
