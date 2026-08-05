@@ -34,7 +34,7 @@
   .logo-main{font-family:'Archivo',sans-serif;font-weight:900;font-style:italic;font-size:5.4vh;letter-spacing:-1.5px;color:#fff;position:relative;}
   .logo-main .logo-sub{font-size:0.56em;margin-left:1px;}
   .logo-main .logo-reg{font-size:0.28em;position:relative;top:-2.6em;left:1px;font-style:normal;font-weight:700;}
-  .campaign-line{flex:1 1 auto;text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:2.9vh;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;text-shadow:0 0 16px rgba(34,211,238,0.55);}
+  .campaign-line{flex:1 1 auto;text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:3.7vh;letter-spacing:2.5px;color:var(--cyan);text-transform:uppercase;text-shadow:0 0 22px rgba(34,211,238,0.7);}
 
   .head-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:0.6vh;}
   .range{font-family:'IBM Plex Mono',monospace;font-size:1.55vh;color:var(--muted);}
@@ -46,6 +46,25 @@
     transition:all .15s ease;
   }
   button.refresh:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 18px rgba(34,211,238,0.35);}
+
+  .countdown-bar{
+    flex:0 0 auto;display:flex;justify-content:space-between;align-items:center;gap:1.5vw;
+    background:linear-gradient(135deg,rgba(26,40,76,0.75),rgba(15,23,45,0.85));border:1px solid var(--border-hi);border-radius:1.4vh;
+    padding:1.2vh 2vw;box-shadow:0 15px 35px -18px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .countdown-title{font-family:'Inter',sans-serif;font-weight:800;font-size:1.9vh;color:#fff;}
+  .countdown-title-en{color:var(--blue2);}
+  .countdown-sub{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:1.15vh;letter-spacing:1.5px;color:var(--muted);margin-top:0.4vh;text-transform:uppercase;}
+  .countdown-right{display:flex;align-items:center;gap:0.9vh;}
+  .countdown-unit{display:flex;flex-direction:column;align-items:center;gap:0.4vh;}
+  .countdown-num{
+    font-family:'Fraunces',serif;font-weight:900;font-size:3.6vh;color:var(--text);min-width:5.5vh;text-align:center;
+    background:linear-gradient(165deg,rgba(96,165,250,0.28),rgba(30,41,73,0.65));border:1px solid var(--border-hi);border-radius:0.9vh;
+    padding:0.3vh 0.6vh;box-shadow:inset 0 1px 0 rgba(255,255,255,0.12),0 6px 16px -8px rgba(0,0,0,0.6);
+  }
+  .countdown-unit.accent .countdown-num{background:linear-gradient(165deg,var(--blue2),var(--blue));color:#fff;box-shadow:0 0 18px rgba(96,165,250,0.55),inset 0 1px 0 rgba(255,255,255,0.3);}
+  .countdown-label{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:0.95vh;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;}
+  .countdown-colon{font-family:'Fraunces',serif;font-weight:900;font-size:2.6vh;color:var(--dim);margin-top:-1.6vh;}
 
   .kpi-grid{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:1.4vh 1.2vw;}
   section{display:flex;flex-direction:column;min-height:0;}
@@ -64,27 +83,25 @@
     background:linear-gradient(160deg,var(--card-hi),var(--card));border:1px solid var(--border);border-radius:1.2vh;padding:0.4vh 1.3vh;
     box-shadow:0 20px 45px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
   }
-  .row{display:flex;justify-content:space-between;align-items:center;flex:1 1 0;min-height:0;border-bottom:1px solid rgba(96,148,255,0.12);font-family:'IBM Plex Mono',monospace;gap:1vh;}
-  .row:last-child{border-bottom:none;}
-  .row.rank-1{margin:0 -1.3vh;padding:0 1.3vh;border-radius:1vh;background:linear-gradient(90deg,rgba(251,191,36,0.14),transparent 70%);border-bottom:1px solid rgba(251,191,36,0.18);}
-  .row .label{color:var(--text);font-weight:600;display:flex;align-items:center;flex:1;min-width:0;}
-  .row .label-text{min-width:0;flex:1;}
-  .row .label .name{display:block;font-size:1.5vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .row .label .sub{color:var(--dim);font-size:1.05vh;display:block;margin-top:0.2vh;font-family:'Inter',sans-serif;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .row .amount{font-weight:800;color:var(--text);white-space:nowrap;font-size:1.5vh;flex:0 0 auto;}
-  .pill{display:inline-block;padding:0.2vh 0.9vh;border-radius:20px;font-size:1vh;font-weight:700;margin-left:0.8vh;font-family:'IBM Plex Mono',monospace;}
-  .pill.up{background:rgba(52,211,153,0.14);color:var(--green);}
-  .pill.down{background:rgba(248,113,113,0.14);color:var(--red);}
-  .pill.flat{background:rgba(159,176,217,0.10);color:var(--dim);}
-  .pill.new{background:rgba(34,211,238,0.14);color:var(--cyan);letter-spacing:1px;}
+  .pill{display:inline-block;padding:0.15vh 0.7vh;border-radius:20px;font-size:0.9vh;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+  .pill.up{background:rgba(52,211,153,0.18);color:var(--green);}
+  .pill.down{background:rgba(248,113,113,0.18);color:var(--red);}
+  .pill.flat{background:rgba(159,176,217,0.14);color:var(--dim);}
+  .pill.new{background:rgba(34,211,238,0.18);color:var(--cyan);letter-spacing:1px;}
 
-  .rank{
-    display:inline-flex;width:2.6vh;height:2.6vh;align-items:center;justify-content:center;border-radius:50%;font-size:1.2vh;font-weight:800;
-    margin-right:1vh;flex-shrink:0;font-family:'Fraunces',serif;
+  .rank-grid{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);align-items:end;gap:0.7vh;}
+  .rank-block{
+    border-radius:1vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    padding:0.5vh 0.3vh;overflow:hidden;min-width:0;border:1px solid rgba(255,255,255,0.1);
   }
-  .rank-1 .rank{background:linear-gradient(150deg,var(--gold-bright),var(--gold));color:#3B2405;box-shadow:0 0 14px rgba(251,191,36,0.65);}
-  .rank-2 .rank{background:linear-gradient(150deg,#EAF1FF,var(--silver));color:#1E2942;box-shadow:0 0 10px rgba(203,213,225,0.4);}
-  .rank-3 .rank{background:linear-gradient(150deg,#F3B98A,var(--bronze));color:#3B2205;box-shadow:0 0 10px rgba(224,153,94,0.4);}
+  .rank-block.pos-1{height:100%;background:linear-gradient(175deg,var(--gold-bright) -20%,var(--blue2) 25%,var(--blue) 95%);box-shadow:0 0 26px rgba(96,165,250,0.55),inset 0 1px 0 rgba(255,255,255,0.35);}
+  .rank-block.pos-2{height:80%;background:linear-gradient(175deg,rgba(120,150,220,0.7),rgba(40,55,100,0.55) 60%,rgba(22,30,56,0.85));}
+  .rank-block.pos-3{height:64%;background:linear-gradient(175deg,rgba(100,125,195,0.45),rgba(34,45,82,0.5) 60%,rgba(20,27,50,0.8));}
+  .rank-block.pos-empty{height:64%;background:rgba(255,255,255,0.02);border-style:dashed;}
+  .rank-block-head{display:flex;align-items:center;justify-content:center;gap:0.5vh;margin-bottom:0.6vh;}
+  .rank-circle{font-family:'Fraunces',serif;font-weight:800;font-size:1.5vh;color:#fff;}
+  .rank-name{font-family:'Inter',sans-serif;font-weight:800;font-size:1.55vh;color:#fff;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .rank-amount{font-family:'Fraunces',serif;font-weight:900;font-size:1.55vh;color:rgba(255,255,255,0.92);margin-top:0.6vh;white-space:nowrap;}
 
   .loading-msg{font-family:'IBM Plex Mono',monospace;font-size:1.3vh;color:var(--dim);padding:1vh 0;}
   .error-box{border:1px solid var(--red);border-radius:1vh;padding:1vh 1.2vh;font-family:'IBM Plex Mono',monospace;font-size:1.1vh;color:var(--red);background:rgba(248,113,113,0.06);}
@@ -104,6 +121,22 @@
       <button class="refresh" id="refreshBtn">↻ REFRESH ALL</button>
     </div>
   </header>
+
+  <div class="countdown-bar">
+    <div class="countdown-left">
+      <div class="countdown-title">距活动结束 <span class="countdown-title-en">冲刺倒计时</span></div>
+      <div class="countdown-sub">CARNIVAL ENDS IN · <span id="countdownEndLabel">—</span></div>
+    </div>
+    <div class="countdown-right">
+      <div class="countdown-unit"><div class="countdown-num" id="cdDays">00</div><div class="countdown-label">天 DAYS</div></div>
+      <span class="countdown-colon">:</span>
+      <div class="countdown-unit"><div class="countdown-num" id="cdHours">00</div><div class="countdown-label">时 HRS</div></div>
+      <span class="countdown-colon">:</span>
+      <div class="countdown-unit"><div class="countdown-num" id="cdMins">00</div><div class="countdown-label">分 MIN</div></div>
+      <span class="countdown-colon">:</span>
+      <div class="countdown-unit accent"><div class="countdown-num" id="cdSecs">00</div><div class="countdown-label">秒 SEC</div></div>
+    </div>
+  </div>
 
   <div class="kpi-grid">
     <section id="sec1">
@@ -142,15 +175,36 @@
 const CONFIG = {
   SUPABASE_URL: "https://qvhwbxrsucttamiljfau.supabase.co",
   SUPABASE_ANON_KEY: "sb_publishable_rfrK-U1ScPh1EuOdwURB9g_rgeFmdoe",
+  // Update this when the real event dates are set — the countdown and its
+  // end-date label are both derived from this single value.
+  EVENT_END_ISO: "2026-08-04T13:00:00+08:00",
 };
 
 const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+const EVENT_END = new Date(CONFIG.EVENT_END_ISO);
+document.getElementById('countdownEndLabel').textContent =
+  EVENT_END.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kuala_Lumpur' }).toUpperCase() +
+  ' ' + EVENT_END.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kuala_Lumpur' });
+
+function updateCountdown(){
+  const diff = Math.max(0, EVENT_END - new Date());
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor(diff % 86400000 / 3600000);
+  const mins = Math.floor(diff % 3600000 / 60000);
+  const secs = Math.floor(diff % 60000 / 1000);
+  document.getElementById('cdDays').textContent = String(days).padStart(2, '0');
+  document.getElementById('cdHours').textContent = String(hours).padStart(2, '0');
+  document.getElementById('cdMins').textContent = String(mins).padStart(2, '0');
+  document.getElementById('cdSecs').textContent = String(secs).padStart(2, '0');
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
 
 const statusEl = document.getElementById('statusLabel');
 function setStatus(t, c){ statusEl.textContent = t; statusEl.className = 'status' + (c ? ' ' + c : ''); }
 function rm(n){ if (n === null || n === undefined || isNaN(n)) return '—'; return 'RM ' + Number(n).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function pct(n){ if (n === null || n === undefined || isNaN(n)) return '—'; const s = n >= 0 ? '+' : ''; return s + Number(n).toFixed(2) + '%'; }
-function rankClass(i){ return i===0 ? 'rank-1' : i===1 ? 'rank-2' : i===2 ? 'rank-3' : ''; }
 
 // Tracks each Top-3 list's project order across refreshes (persisted so it
 // survives page reloads too) to show real rank movement — not just whether
@@ -188,41 +242,25 @@ function errorBox(id, err, retryFn){
   el.appendChild(box);
 }
 
-function renderKpi1(items){
-  const el = document.getElementById('sec1-body'); el.innerHTML = '';
-  if (!items || !items.length){ el.innerHTML = '<div class="loading-msg">无数据</div>'; return; }
-  const badges = moveBadge('kpi01', items.map(it => it.project));
-  items.forEach((it, i) => {
-    const row = document.createElement('div'); row.className = 'row ' + rankClass(i);
-    const dateStr = it.sales_date ? `(${it.sales_date})` : '';
-    row.innerHTML = `<span class="label"><span class="rank">${i+1}</span><span class="label-text"><span class="name">${it.project}</span><span class="sub">2025最高单日${dateStr} ${rm(it.best_2025_day)} → 2026活动 ${rm(it.event_sales_2026)}</span></span></span>
-      <span class="amount">${pct(it.pct_growth)}${moveBadgeHtml(badges[i])}</span>`;
-    el.appendChild(row);
-  });
-}
+const RANK_CIRCLES = ['①','②','③'];
 
-function renderKpi2(items){
-  const el = document.getElementById('sec2-body'); el.innerHTML = '';
-  if (!items || !items.length){ el.innerHTML = '<div class="loading-msg">无数据</div>'; return; }
-  const badges = moveBadge('kpi02', items.map(it => it.project));
-  items.forEach((it, i) => {
-    const row = document.createElement('div'); row.className = 'row ' + rankClass(i);
-    row.innerHTML = `<span class="label"><span class="rank">${i+1}</span><span class="label-text"><span class="name">${it.project}</span><span class="sub">2025最高单日 ${rm(it.best_2025_day)} → 2026活动 ${rm(it.event_sales_2026)}</span></span></span>
-      <span class="amount">${rm(it.diff_rm)}${moveBadgeHtml(badges[i])}</span>`;
-    el.appendChild(row);
-  });
-}
-
-function renderTop3(sectionKey, id, items, subFn, amountFn){
+function renderBlocks(sectionKey, id, items, amountFn){
   const el = document.getElementById(id); el.innerHTML = '';
   if (!items || !items.length){ el.innerHTML = '<div class="loading-msg">无数据</div>'; return; }
   const badges = moveBadge(sectionKey, items.map(it => it.project));
+  const grid = document.createElement('div'); grid.className = 'rank-grid';
   items.forEach((it, i) => {
-    const row = document.createElement('div'); row.className = 'row ' + rankClass(i);
-    row.innerHTML = `<span class="label"><span class="rank">${i+1}</span><span class="label-text"><span class="name">${it.project}</span><span class="sub">${subFn(it)}</span></span></span>
-      <span class="amount">${amountFn(it)}${moveBadgeHtml(badges[i])}</span>`;
-    el.appendChild(row);
+    const block = document.createElement('div'); block.className = 'rank-block pos-' + (i + 1);
+    block.innerHTML = `<div class="rank-block-head"><span class="rank-circle">${RANK_CIRCLES[i]}</span>${moveBadgeHtml(badges[i])}</div>
+      <div class="rank-name">${it.project}</div>
+      <div class="rank-amount">${amountFn(it)}</div>`;
+    grid.appendChild(block);
   });
+  for (let i = items.length; i < 3; i++){
+    const empty = document.createElement('div'); empty.className = 'rank-block pos-empty';
+    grid.appendChild(empty);
+  }
+  el.appendChild(grid);
 }
 
 async function loadAll(){
@@ -241,24 +279,12 @@ async function loadAll(){
     return;
   }
 
-  renderKpi1(data.kpi01);
-  renderKpi2(data.kpi02);
-
-  renderTop3('kpi03', 'sec3-body', data.kpi03,
-    it => `Sales ${rm(it.sales)} ÷ ${it.orders} orders`,
-    it => rm(it.aov));
-
-  renderTop3('kpi04', 'sec4-body', data.kpi04,
-    it => `${it.orders} orders`,
-    it => rm(it.sales));
-
-  renderTop3('kpi05', 'sec5-body', data.kpi05,
-    it => `Sales ${rm(it.sales)}`,
-    it => it.orders + ' 单');
-
-  renderTop3('kpi06', 'sec6-body', data.kpi06,
-    it => `${it.repeat_orders} 笔 repeat orders`,
-    it => rm(it.repeat_sales));
+  renderBlocks('kpi01', 'sec1-body', data.kpi01, it => pct(it.pct_growth));
+  renderBlocks('kpi02', 'sec2-body', data.kpi02, it => rm(it.diff_rm));
+  renderBlocks('kpi03', 'sec3-body', data.kpi03, it => rm(it.aov));
+  renderBlocks('kpi04', 'sec4-body', data.kpi04, it => rm(it.sales));
+  renderBlocks('kpi05', 'sec5-body', data.kpi05, it => it.orders + ' 单');
+  renderBlocks('kpi06', 'sec6-body', data.kpi06, it => rm(it.repeat_sales));
 
   setStatus('最后更新: ' + new Date(data.generated_at).toLocaleTimeString('zh-CN'), 'live');
 }
