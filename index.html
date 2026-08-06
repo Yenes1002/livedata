@@ -80,7 +80,7 @@
 
   .kpi-val{ font-family:'Oswald',sans-serif; font-variant-numeric: tabular-nums; line-height: 1.1; }
   .gmv-value{
-    font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
     line-height: 1.05;
     background: linear-gradient(90deg, #fff, var(--blue-bright));
     -webkit-background-clip: text; background-clip: text; color: transparent;
@@ -91,15 +91,6 @@
   }
   .subcard{ background:rgba(255,255,255,0.03); border:1px solid var(--panel-line); border-radius:12px; }
 
-  /* countdown flip-clock */
-  .cd-box{
-    text-align:center; border-radius:10px; padding:3px 12px;
-    background: linear-gradient(180deg, #0C1A3C, #122A5C);
-    box-shadow: inset 0 0 20px rgba(59,130,246,0.18), 0 0 22px -10px rgba(47,127,240,0.7);
-    min-width:48px;
-  }
-  .cd-box.cd-accent{ background: linear-gradient(135deg, var(--blue-bright), var(--blue-deep)); box-shadow: 0 0 22px -6px rgba(47,127,240,0.9); }
-  .cd-digit{ font-family:'Oswald',sans-serif; font-weight:700; font-variant-numeric: tabular-nums; }
   .up{ color:var(--green); }
   .down{ color:var(--red); }
   .flat{ color:var(--text-mid); }
@@ -147,25 +138,13 @@
   .page-btn:not(:disabled):hover{ color:var(--text-hi); border-color:var(--accent-light); }
   .page-btn:disabled{ opacity:.35; cursor:default; }
   .page-btn.active{ background:linear-gradient(135deg,var(--blue-bright),var(--blue-deep)); color:#fff; border-color:transparent; }
-
-  .filter-input{
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--panel-line);
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 13px;
-    font-family: 'Oswald', sans-serif;
-    color: var(--text-hi);
-    color-scheme: dark;
-  }
-  .filter-input:focus{ outline: 1px solid var(--blue-bright); }
 </style>
 </head>
 
-<body class="min-h-screen">
+<body class="h-screen overflow-hidden pt-4">
 
 <!-- ============================= HEADER ============================= -->
-<header class="panel mx-4 mt-4 overflow-hidden">
+<header class="panel mx-4 overflow-hidden">
   <div class="scan-line"></div>
   <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-2">
     <div class="flex items-center gap-4">
@@ -179,6 +158,10 @@
     </div>
 
     <div class="flex items-center gap-6">
+      <div class="text-right hidden lg:block">
+        <p class="eyebrow">统计区间 Period</p>
+        <p id="periodLabel" class="font-mono text-sm font-semibold" style="color:var(--accent-light);">--</p>
+      </div>
       <div class="flex items-center gap-2 px-3 py-1.5 rounded-full" style="background:rgba(52,211,153,0.08); border:1px solid rgba(52,211,153,0.3);">
         <span class="pulse-dot"></span>
         <span class="text-xs font-semibold tracking-wide" style="color:var(--green)">LIVE</span>
@@ -197,60 +180,19 @@
 
 <main class="p-3 space-y-2 max-w-[1900px] mx-auto">
 
-  <!-- ============================= FILTER BAR (左) + COUNTDOWN (右) ============================= -->
-  <section class="panel p-3 flex flex-wrap items-center justify-between gap-4">
-    <div class="flex flex-wrap items-center gap-3">
-      <div class="flex items-center gap-2">
-        <label class="eyebrow">战报周期 Date</label>
-        <input type="date" id="filterStartDate" class="filter-input" />
-        <span class="text-[color:var(--text-low)]">→</span>
-        <input type="date" id="filterEndDate" class="filter-input" />
-      </div>
-      <div class="flex items-center gap-2">
-        <label class="eyebrow">项目 Project</label>
-        <select id="filterProject" class="filter-input"><option value="all">All Projects</option></select>
-      </div>
-      <button id="filterApply" class="text-xs font-semibold px-4 py-2 rounded-lg"
-        style="background:linear-gradient(135deg,var(--blue-bright),var(--blue-deep)); color:#fff;">APPLY</button>
-      <button id="filterReset" class="text-xs px-4 py-2 rounded-lg border"
-        style="border-color:var(--panel-line); color:var(--text-mid);">Reset to now</button>
-      <span class="text-xs font-mono" style="color:var(--text-low)" id="filterSummary"></span>
-    </div>
-
-    <div class="flex items-center gap-2 shrink-0" title="活动结束：08 AUG 2026 13:00">
-      <span class="eyebrow whitespace-nowrap">ENDS IN</span>
-      <div class="cd-box">
-        <div id="cdDays" class="cd-digit text-lg" style="color:var(--accent-light);">00</div>
-        <div class="eyebrow" style="font-size:7px;">DAYS</div>
-      </div>
-      <span class="cd-digit text-base" style="color:var(--panel-line);">:</span>
-      <div class="cd-box">
-        <div id="cdHrs" class="cd-digit text-lg" style="color:var(--accent-light);">00</div>
-        <div class="eyebrow" style="font-size:7px;">HRS</div>
-      </div>
-      <span class="cd-digit text-base" style="color:var(--panel-line);">:</span>
-      <div class="cd-box">
-        <div id="cdMin" class="cd-digit text-lg" style="color:var(--accent-light);">00</div>
-        <div class="eyebrow" style="font-size:7px;">MIN</div>
-      </div>
-      <span class="cd-digit text-base" style="color:var(--panel-line);">:</span>
-      <div class="cd-box cd-accent">
-        <div id="cdSec" class="cd-digit text-lg" style="color:#fff;">00</div>
-        <div class="eyebrow" style="font-size:7px; color:rgba(255,255,255,0.75);">SEC</div>
-      </div>
-    </div>
-  </section>
+  <!-- 只在查询失败时才会显示内容，平时是空的、不占视觉空间 -->
+  <p class="text-xs font-mono text-center" style="color:var(--red);" id="fetchErrorBanner"></p>
 
   <!-- ============================= KPI（左）+ TOP 5 柱状图（右） ============================= -->
-  <section class="grid grid-cols-1 lg:grid-cols-2 gap-3" style="min-height:320px;">
-    <div class="flex flex-col gap-3">
-      <div class="panel p-4 flex-1 flex flex-col justify-center" id="kpiHero"></div>
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-3" style="min-height:310px;">
+    <div class="flex flex-col gap-2">
+      <div class="panel p-3 flex-1 flex flex-col justify-center" id="kpiHero"></div>
       <div class="grid grid-cols-3 gap-2" id="kpiGrid">
         <!-- KPI cards injected by JS -->
       </div>
     </div>
-    <div class="panel p-4 flex flex-col" id="rankingSection">
-      <div class="flex items-center justify-between mb-2">
+    <div class="panel p-3 flex flex-col" id="rankingSection">
+      <div class="flex items-center justify-between mb-1">
         <h2 class="font-display font-semibold text-sm">巅峰总榜 <span class="eyebrow" style="font-size:11px;">TOP 5 PROJECTS BY GMV</span></h2>
         <span class="text-xs font-semibold px-3 py-1 rounded-full" style="background:linear-gradient(135deg,var(--blue-bright),var(--blue-deep)); color:#fff;">TOP 5</span>
       </div>
@@ -260,10 +202,6 @@
 
   <!-- ============================= PROJECT PERFORMANCE TABLE ============================= -->
   <section class="panel p-3">
-    <div class="flex items-center justify-between mb-2">
-      <h2 class="font-display font-semibold text-sm">项目战报 <span class="eyebrow" style="font-size:11px;">PROJECT PERFORMANCE</span></h2>
-      <span class="eyebrow" id="tableCount">-- projects</span>
-    </div>
     <div class="overflow-x-auto">
       <table class="perf w-full text-sm">
         <thead>
@@ -280,9 +218,6 @@
     </div>
   </section>
 
-  <footer class="text-center text-[10px] py-1" style="color:var(--text-low)">
-    CTG4u 巅峰购物节 · Sales Bonanza · Powered by Supabase · 自动刷新每 5 分钟
-  </footer>
 </main>
 
 <script>
@@ -328,6 +263,11 @@ function fmtValue(val, type){
     case "int":        return Math.round(val).toLocaleString("en-MY");
     default:           return val;
   }
+}
+/** 项目名字打码：只留前两个字母，其余用 *** 盖住，不暴露完整项目名 */
+function maskName(name){
+  if (!name) return name;
+  return name.slice(0, 2) + "***";
 }
 function pct(a, b){
   if (a === null || a === undefined || !b || b === 0) return null;
@@ -569,19 +509,11 @@ function isOxm2BrandAllowed(name){
   return OXM2_ALLOWED_BRAND_NAMES.some(b => b.toLowerCase() === norm);
 }
 
-// 大屏公开展示用：品牌名只显示前 3 个字母，其余打码成 *
-// Skindae -> Ski****
-function maskName(name){
-  if (!name) return name;
-  const visible = name.slice(0, 3);
-  const stars = "*".repeat(Math.max(name.length - 3, 0));
-  return visible + stars;
-}
-
 /* =====================================================================
-   DATE RANGE — 只看 2026-07-26（活动开始）之后的数据
+   DATE RANGE — 不再有可交互的筛选器，固定「MTD」：8/1 到今天，每天自动往前走
    ===================================================================== */
-let currentFilters = { start: todayStr(), end: todayStr(), project: "all" };
+const PERIOD_START = "2026-08-01";
+let currentFilters = { start: PERIOD_START, end: todayStr(), project: "all" };
 
 /* ---------------------------------------------------------------------
    DATA FETCH — 支持日期范围筛选 + 项目筛选
@@ -966,9 +898,14 @@ function kpiCardHTML(def, cur, prev){
 }
 /** Hero 卡右边的迷你趋势图：面积图，只示意走势，不带坐标轴 */
 function sparklineSVG(series){
-  const w = 260, h = 110;
+  const w = 260, h = 88;
   if (!series || series.length < 2){
-    return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}"></svg>`;
+    // 数据点不够画不出真实趋势线（比如只看「今天」），放一个装饰性的折线图标，不要留白
+    return `
+      <svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" style="opacity:0.35">
+        <polyline points="20,64 70,44 110,54 150,28 190,36 240,16" fill="none" stroke="var(--blue-bright)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="240" cy="16" r="5" fill="var(--blue-bright)"/>
+      </svg>`;
   }
   const values = series.map(d => d.total_sales);
   const min = Math.min(...values), max = Math.max(...values);
@@ -997,13 +934,13 @@ function renderKPIGrid(today, yesterday, series){
   const heroChange = pct(heroCur, heroPrev);
   const ht = trendMeta(heroChange);
   document.getElementById("kpiHero").innerHTML = `
-    <div class="flex items-center justify-between gap-4">
-      <div class="min-w-0">
+    <div class="flex items-center gap-6">
+      <div class="min-w-0 shrink-0">
         <p class="eyebrow mb-1">${heroDef.label}</p>
         <p class="kpi-val gmv-value font-extrabold whitespace-nowrap">${fmtValue(heroCur, heroDef.fmt)}</p>
         <p class="text-sm -mt-0.5 ${ht.cls} font-mono">${ht.icon} ${ht.text} <span class="text-[color:var(--text-low)] font-sans">vs 上期 previous period</span></p>
       </div>
-      <div class="shrink-0 hidden sm:block">${sparklineSVG(series)}</div>
+      <div class="hidden sm:block flex-1 min-w-0">${sparklineSVG(series)}</div>
     </div>
   `;
 
@@ -1050,15 +987,19 @@ function renderGrandLeaderboard(projects){
           ? "linear-gradient(180deg, #cfe4ff, var(--blue-bright) 55%, var(--blue-deep))"
           : "linear-gradient(180deg, var(--blue-bright), var(--blue-deep))";
         const glow = isFirst ? "box-shadow: 0 0 24px -4px rgba(156,196,255,0.85);" : "";
+        const mv = rankMovement(p._rank, p._prevRank);
         return `
           <div class="flex flex-col items-center text-center h-full">
-            <div class="rank-badge ${rankBadgeClass(i)}" style="width:26px;height:26px;font-size:13px;">${i + 1}</div>
+            <div class="flex items-center justify-center gap-1.5">
+              <div class="rank-badge ${rankBadgeClass(i)}" style="width:26px;height:26px;font-size:13px;">${i + 1}</div>
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${mv.cls}" style="background:rgba(255,255,255,0.06);">${mv.text}</span>
+            </div>
             <p class="font-mono text-base font-bold truncate w-full mt-1.5" style="color:var(--text-hi)">${fmtValue(p.total_sales,"currency")}</p>
             <div class="flex-1 w-full flex items-end mt-2 flash-update">
               <div class="w-full rounded-t-lg" style="height:${barPct}%; min-height:20px; background:${barGradient}; ${glow}"></div>
             </div>
-            <p class="text-xs font-semibold truncate w-full mt-2" title="${p.project_name}">${p.project_name}</p>
-            <p class="text-[10px] truncate w-full" style="color:var(--text-low)">${p.project_type} &middot; ${fmtValue(p.total_orders,"int")} orders</p>
+            <p class="text-xs font-semibold truncate w-full mt-2" title="${maskName(p.project_name)}">${maskName(p.project_name)}</p>
+            <p class="text-[10px] truncate w-full" style="color:var(--text-low)">${fmtValue(p.total_orders,"int")} orders</p>
           </div>`;
       }).join("")}
     </div>` : `<p class="text-sm text-[color:var(--text-mid)]">暂无数据</p>`;
@@ -1080,14 +1021,14 @@ const TABLE_COLUMNS = [
 let tableSortState = { key: "total_sales", dir: "desc" };
 let lastProjects = []; // 缓存最近一次拿到的数据，点表头排序 / 翻页时不用重新拉取
 let tableCurrentPage = 1;
-const TABLE_PAGE_SIZE = 10;
+const TABLE_PAGE_SIZE = 15;
 
 function renderTableHead(){
   const head = document.getElementById("perfTableHead");
   head.innerHTML = TABLE_COLUMNS.map(col => {
     const isActive = tableSortState.key === col.key;
     const arrow = isActive ? (tableSortState.dir === "asc" ? "▲" : "▼") : "";
-    const cls = col.sortable ? "py-2 pr-4 sort-th" : "py-2 pr-4";
+    const cls = col.sortable ? "py-1.5 pr-4 sort-th" : "py-1.5 pr-4";
     return `<th class="${cls}" data-key="${col.key}">${col.label} <span style="color:var(--blue-bright)">${arrow}</span></th>`;
   }).join("");
 
@@ -1114,7 +1055,6 @@ function trendSpanHTML(trendPct){
 function renderTable(projects, cache = true){
   if (cache){ lastProjects = projects; tableCurrentPage = 1; } // 新数据进来，回到第一页
   const body = document.getElementById("perfTableBody");
-  document.getElementById("tableCount").textContent = `${projects.length} projects`;
 
   const { key, dir } = tableSortState;
   const sorted = [...projects].sort((a,b) => {
@@ -1134,31 +1074,30 @@ function renderTable(projects, cache = true){
 
   body.innerHTML = pageRows.map(p => `
     <tr>
-      <td class="py-1.5 pr-4">
-        <span class="font-medium">${p.project_name}</span>
-        <span class="text-xs text-[color:var(--text-low)] ml-1">${p.project_type}</span>
+      <td class="py-1 pr-4">
+        <span class="font-medium">${maskName(p.project_name)}</span>
       </td>
-      <td class="py-1.5 pr-4 font-mono">
+      <td class="py-1 pr-4 font-mono">
         ${fmtValue(p.ads_spent,"currency")}
         ${trendSpanHTML(p.trends?.ads_spent)}
       </td>
-      <td class="py-1.5 pr-4 font-mono font-semibold">
+      <td class="py-1 pr-4 font-mono font-semibold">
         ${fmtValue(p.total_sales,"currency")}
         ${trendSpanHTML(p.trends?.total_sales)}
       </td>
-      <td class="py-1.5 pr-4 font-mono">
+      <td class="py-1 pr-4 font-mono">
         ${fmtValue(p.roas,"ratio")}
         ${trendSpanHTML(p.trends?.roas)}
       </td>
-      <td class="py-1.5 pr-4 font-mono">
+      <td class="py-1 pr-4 font-mono">
         ${fmtValue(p.aov,"currency")}
         ${trendSpanHTML(p.trends?.aov)}
       </td>
-      <td class="py-1.5 pr-4 font-mono">
+      <td class="py-1 pr-4 font-mono">
         ${fmtValue(p.total_orders,"int")}
         ${trendSpanHTML(p.trends?.total_orders)}
       </td>
-      <td class="py-1.5 pr-4">
+      <td class="py-1 pr-4">
         <span class="status-dot status-${p.status||'active'}"></span>
         <span class="text-xs capitalize">${p.status||'active'}</span>
       </td>
@@ -1199,42 +1138,32 @@ function renderPagination(totalRows, totalPages){
    MAIN REFRESH CYCLE
 --------------------------------------------------------------------- */
 // 每次刷新发一个 token 出去，只有「当前最新的那一次」有资格把结果画到画面上——
-// 避免自动刷新 / 手动 Apply 这些动作重叠触发时，先发出去的请求晚回来反而把新结果盖掉
+// 避免自动刷新重叠触发时，先发出去的请求晚回来反而把新结果盖掉
 let latestRefreshToken = 0;
-let trackToday = true; // start/end 还没被手动改过的话，每次刷新都固定显示「今天」，跨过午夜也会自动跟着走
+function fmtPeriodDate(dateStr){
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  return `${String(d).padStart(2,"0")} ${months[m-1]}`;
+}
 async function refreshDashboard(){
   const myToken = ++latestRefreshToken;
   try{
-    if (trackToday){
-      currentFilters.start = todayStr();
-      currentFilters.end = todayStr();
-      document.getElementById("filterStartDate").value = currentFilters.start;
-      document.getElementById("filterEndDate").value = currentFilters.end;
-    }
+    currentFilters.end = todayStr(); // 固定 MTD：起点不变，终点每天自动跟着走到今天
     const data = await fetchDashboardData(currentFilters);
     if (myToken !== latestRefreshToken) return; // 这期间已经有更新的刷新发生了，这次的结果作废，不画
     renderKPIGrid(data.overallToday, data.overallYesterday, data.series);
     renderRankingSection(data.projects);
     renderTable(data.projects);
-    populateProjectFilter(data.availableBrands || []);
-    document.getElementById("filterSummary").textContent =
-      `${currentFilters.start} → ${currentFilters.end} · ${currentFilters.project === "all" ? "All Projects" : currentFilters.project}`
-      + ((data.fetchErrors && data.fetchErrors.length) ? `  ⚠ 查询失败: ${data.fetchErrors.join(", ")}（看 Console 详情）` : "");
+    document.getElementById("periodLabel").textContent =
+      `${fmtPeriodDate(currentFilters.start)} – ${fmtPeriodDate(currentFilters.end)}`;
+    document.getElementById("fetchErrorBanner").textContent =
+      (data.fetchErrors && data.fetchErrors.length) ? `⚠ 查询失败: ${data.fetchErrors.join(", ")}（看 Console 详情）` : "";
     document.getElementById("lastRefresh").textContent = new Date().toLocaleTimeString("en-MY", {hour12:false});
   }catch(err){
     if (myToken !== latestRefreshToken) return; // 同上，旧请求的报错也不该覆盖新请求的状态
     console.error(err);
     document.getElementById("lastRefresh").textContent = "Error — see console";
   }
-}
-
-// 填充 Project 下拉选项，保留当前已选中的值
-function populateProjectFilter(brands){
-  const select = document.getElementById("filterProject");
-  const prevValue = select.value || currentFilters.project;
-  select.innerHTML = `<option value="all">All Projects</option>` +
-    brands.map(b => `<option value="${b}">${b}</option>`).join("");
-  if ([...select.options].some(o => o.value === prevValue)) select.value = prevValue;
 }
 
 // BRAND_TYPE_MAP 是空的时候，先合并显示一个总排名；
@@ -1252,44 +1181,6 @@ function updateClock(){
   document.getElementById("clock").textContent = new Date().toLocaleTimeString("en-MY", {hour12:false});
 }
 
-/* 活动结束时间：2026-08-08 13:00:00，马来西亚时间（UTC+8），写死带时区偏移，
-   不管开这个页面的人在哪个时区，倒数的都是同一个绝对时刻 */
-const CARNIVAL_END = new Date("2026-08-08T13:00:00+08:00");
-function updateCountdown(){
-  const diff = Math.max(0, CARNIVAL_END - new Date());
-  const pad = n => String(n).padStart(2, "0");
-  document.getElementById("cdDays").textContent = pad(Math.floor(diff / 86400000));
-  document.getElementById("cdHrs").textContent = pad(Math.floor((diff % 86400000) / 3600000));
-  document.getElementById("cdMin").textContent = pad(Math.floor((diff % 3600000) / 60000));
-  document.getElementById("cdSec").textContent = pad(Math.floor((diff % 60000) / 1000));
-}
-
-/* ---------------------------------------------------------------------
-   FILTER BAR — 日期范围 + 项目筛选
---------------------------------------------------------------------- */
-function initFilterBar(){
-  document.getElementById("filterStartDate").value = currentFilters.start;
-  document.getElementById("filterEndDate").value = currentFilters.end;
-
-  document.getElementById("filterApply").addEventListener("click", () => {
-    const start = document.getElementById("filterStartDate").value || todayStr();
-    const end = document.getElementById("filterEndDate").value || todayStr();
-    const project = document.getElementById("filterProject").value || "all";
-    trackToday = (start === todayStr() && end === todayStr()); // 手动选的刚好是「今天到今天」，也当作跟着今天走；选了别的范围就固定住，不再自动跳
-    currentFilters = { start, end, project };
-    refreshDashboard();
-  });
-
-  document.getElementById("filterReset").addEventListener("click", () => {
-    trackToday = true;
-    currentFilters = { start: todayStr(), end: todayStr(), project: "all" };
-    document.getElementById("filterStartDate").value = currentFilters.start;
-    document.getElementById("filterEndDate").value = currentFilters.end;
-    document.getElementById("filterProject").value = "all";
-    refreshDashboard();
-  });
-}
-
 /* ---------------------------------------------------------------------
    INIT
 --------------------------------------------------------------------- */
@@ -1301,12 +1192,9 @@ window.addEventListener("DOMContentLoaded", () => {
     banner.textContent = "⚠ DEMO MODE — 尚未连接 Supabase，当前展示的是示例数据。请在 index.html 顶部 CONFIG 里填入 SUPABASE_URL 和 SUPABASE_ANON_KEY。";
     document.body.insertBefore(banner, document.body.firstChild.nextSibling);
   }
-  initFilterBar();
   renderTableHead();
   refreshDashboard();
-  updateCountdown();
   setInterval(updateClock, 1000);
-  setInterval(updateCountdown, 1000);
   setInterval(refreshDashboard, CONFIG.REFRESH_INTERVAL_MS);
 
   // 分页从背景（切到别的分页 / 螢幕休眠）切回来的时候，强制刷新一次，
