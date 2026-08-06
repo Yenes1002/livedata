@@ -1108,10 +1108,12 @@ function renderTable(projects, cache = true){
         <span class="status-dot status-${p.status||'active'}"></span>
         <span class="text-xs capitalize">${p.status||'active'}</span>
       </td>
-    </tr>`).join("");
+    </tr>`).join("")
+    // 最后一页凑不满 TABLE_PAGE_SIZE 行时，用空行占位撑高度，
+    // 这样每一页的高度都一样，fitToScreen 算出来的缩放比例才不会跟着翻页跳动
+    + `<tr class="invisible"><td class="py-1" colspan="7">&nbsp;</td></tr>`.repeat(Math.max(0, TABLE_PAGE_SIZE - pageRows.length));
 
   renderPagination(sorted.length, totalPages);
-  fitToScreen(); // 行数/分页变了，内容高度可能跟着变，重新算一次缩放比例
 }
 
 function renderPagination(totalRows, totalPages){
@@ -1167,6 +1169,7 @@ async function refreshDashboard(){
     document.getElementById("fetchErrorBanner").textContent =
       (data.fetchErrors && data.fetchErrors.length) ? `⚠ 查询失败: ${data.fetchErrors.join(", ")}（看 Console 详情）` : "";
     document.getElementById("lastRefresh").textContent = new Date().toLocaleTimeString("en-MY", {hour12:false});
+    fitToScreen(); // 只在整批数据刷新完、表格回到第 1 页（行数固定）时重新量一次，翻页本身不应该改变缩放比例
   }catch(err){
     if (myToken !== latestRefreshToken) return; // 同上，旧请求的报错也不该覆盖新请求的状态
     console.error(err);
