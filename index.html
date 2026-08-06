@@ -1189,18 +1189,19 @@ function updateClock(){
   document.getElementById("clock").textContent = new Date().toLocaleTimeString("en-MY", {hour12:false});
 }
 
-/** 把整个（固定 1920 宽设计的）dashboard 缩放置中塞进实际窗口，
+/** 把整个（固定 1920 宽设计的）dashboard 缩放铺满实际窗口（宽高分开算比例，贴边不留黑边），
  *  不管真实屏幕/浏览器窗口多高多宽，都保证整页可见、不出现 scroll、内容也不会被裁掉看不到 */
 function fitToScreen(){
   const root = document.getElementById("dashboardRoot");
-  root.style.transform = "scale(1)";
+  root.style.transform = "scale(1, 1)";
   const naturalWidth = root.scrollWidth;
   const naturalHeight = root.scrollHeight;
-  const scale = Math.min(window.innerWidth / naturalWidth, window.innerHeight / naturalHeight, 1);
-  root.style.transform = `scale(${scale})`;
+  const scaleX = window.innerWidth / naturalWidth;
+  const scaleY = window.innerHeight / naturalHeight;
+  root.style.transform = `scale(${scaleX}, ${scaleY})`;
   root.style.transformOrigin = "top left";
-  root.style.left = Math.round((window.innerWidth - naturalWidth * scale) / 2) + "px";
-  root.style.top = Math.round((window.innerHeight - naturalHeight * scale) / 2) + "px";
+  root.style.left = "0px";
+  root.style.top = "0px";
 }
 
 /* ---------------------------------------------------------------------
