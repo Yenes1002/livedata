@@ -146,33 +146,33 @@
 <!-- ============================= HEADER ============================= -->
 <header class="panel mx-4 overflow-hidden">
   <div class="scan-line"></div>
-  <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-2">
-    <div class="flex items-center gap-4">
-      <img src="logo-ctg4u.png" alt="CTG4u" style="height:52px; width:auto;" />
-      <div style="width:1px; height:44px; background:var(--panel-line);"></div>
-      <div>
-        <h1 class="font-display title-gradient tracking-tight" style="font-weight:900; font-size:2.1rem;">
+  <div class="flex flex-nowrap items-center justify-between gap-3 px-6 py-2">
+    <div class="flex items-center gap-3 min-w-0">
+      <img src="logo-ctg4u.png" alt="CTG4u" style="height:44px; width:auto; flex-shrink:0;" />
+      <div style="width:1px; height:36px; background:var(--panel-line); flex-shrink:0;"></div>
+      <div class="min-w-0">
+        <h1 class="font-display title-gradient tracking-tight whitespace-nowrap" style="font-weight:900; font-size:clamp(1.1rem, 1.9vw, 2.1rem);">
           &#10022; 巅峰购物节 &middot; <span class="font-mono tracking-widest" style="font-size:0.8em; font-weight:700;">SALES BONANZA</span> &middot; 24小时业绩挑战 &#10022;
         </h1>
       </div>
     </div>
 
-    <div class="flex items-center gap-6">
+    <div class="flex items-center gap-4 flex-shrink-0">
       <div class="text-right hidden lg:block">
         <p class="eyebrow">统计区间 Period</p>
-        <p id="periodLabel" class="font-mono text-sm font-semibold" style="color:var(--accent-light);">--</p>
+        <p id="periodLabel" class="font-mono text-sm font-semibold whitespace-nowrap" style="color:var(--accent-light);">--</p>
       </div>
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full" style="background:rgba(52,211,153,0.08); border:1px solid rgba(52,211,153,0.3);">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full flex-shrink-0" style="background:rgba(52,211,153,0.08); border:1px solid rgba(52,211,153,0.3);">
         <span class="pulse-dot"></span>
         <span class="text-xs font-semibold tracking-wide" style="color:var(--green)">LIVE</span>
       </div>
       <div class="text-right">
         <p class="eyebrow">本地时间</p>
-        <p id="clock" class="font-mono text-lg font-semibold">--:--:--</p>
+        <p id="clock" class="font-mono text-lg font-semibold whitespace-nowrap">--:--:--</p>
       </div>
       <div class="text-right hidden md:block">
         <p class="eyebrow">最后更新</p>
-        <p id="lastRefresh" class="font-mono text-sm text-[color:var(--text-mid)]">--</p>
+        <p id="lastRefresh" class="font-mono text-sm text-[color:var(--text-mid)] whitespace-nowrap">--</p>
       </div>
     </div>
   </div>
