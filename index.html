@@ -141,7 +141,12 @@
 </style>
 </head>
 
-<body class="h-screen overflow-hidden pt-4">
+<body class="overflow-hidden">
+
+<!-- 整个 dashboard 固定按 1920 宽度设计，JS 会算出 scale 把它整个缩放置中塞进
+     实际屏幕/浏览器窗口，不管真实分辨率/浏览器高度是多少，都不会出现 scroll
+     或者内容被裁切看不到（比如 pagination） -->
+<div id="dashboardRoot" style="width:1920px; position:absolute; top:0; left:0;">
 
 <!-- ============================= HEADER ============================= -->
 <header class="panel mx-4 overflow-hidden">
@@ -219,6 +224,8 @@
   </section>
 
 </main>
+
+</div>
 
 <script>
 /* =====================================================================
@@ -1104,6 +1111,7 @@ function renderTable(projects, cache = true){
     </tr>`).join("");
 
   renderPagination(sorted.length, totalPages);
+  fitToScreen(); // 行数/分页变了，内容高度可能跟着变，重新算一次缩放比例
 }
 
 function renderPagination(totalRows, totalPages){
@@ -1181,6 +1189,20 @@ function updateClock(){
   document.getElementById("clock").textContent = new Date().toLocaleTimeString("en-MY", {hour12:false});
 }
 
+/** 把整个（固定 1920 宽设计的）dashboard 缩放置中塞进实际窗口，
+ *  不管真实屏幕/浏览器窗口多高多宽，都保证整页可见、不出现 scroll、内容也不会被裁掉看不到 */
+function fitToScreen(){
+  const root = document.getElementById("dashboardRoot");
+  root.style.transform = "scale(1)";
+  const naturalWidth = root.scrollWidth;
+  const naturalHeight = root.scrollHeight;
+  const scale = Math.min(window.innerWidth / naturalWidth, window.innerHeight / naturalHeight, 1);
+  root.style.transform = `scale(${scale})`;
+  root.style.transformOrigin = "top left";
+  root.style.left = Math.round((window.innerWidth - naturalWidth * scale) / 2) + "px";
+  root.style.top = Math.round((window.innerHeight - naturalHeight * scale) / 2) + "px";
+}
+
 /* ---------------------------------------------------------------------
    INIT
 --------------------------------------------------------------------- */
@@ -1194,8 +1216,10 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   renderTableHead();
   refreshDashboard();
+  fitToScreen();
   setInterval(updateClock, 1000);
   setInterval(refreshDashboard, CONFIG.REFRESH_INTERVAL_MS);
+  window.addEventListener("resize", fitToScreen);
 
   // 分页从背景（切到别的分页 / 螢幕休眠）切回来的时候，强制刷新一次，
   // 避免离开画面太久、回来看到的还是很旧的资料
