@@ -362,6 +362,7 @@ function genDemoOverall(projects){
 const COLUMN_MAP = {
   order_no:        "order_no",
   order_date:      "created_at",        // timestamptz，UTC+0 存的，查询边界要带 +08:00（见 toMYTOffsetTimestampString）
+  calendar_date:   "order_date",        // 订单实际发生的日期（不是补录/创建的时间），用来把补录的旧单挡掉
   market_id:       "market_id",        // 用来 join market → brand，也用来跟 ai_expenses_entry 的 market_id 对应算 Ads Spent
   grand_total:     "grand_total",
   order_status:    "order_status",
@@ -414,6 +415,7 @@ const LEGACY_ORDERS_TABLE = "legacy_orders";
 const LEGACY_ORDER_COLUMN_MAP = {
   order_no:          "order_no",
   order_date:        "created_datetime",  // timestamp（不带时区，存的就是马来西亚本地时间），Total Sales / Total Orders 用这个
+  calendar_date:     "order_date",        // 订单实际发生的日期（不是补录/创建的时间），用来把补录的旧单挡掉
   merchant_id:       "merchant_id",
   project_id:        "project_id",        // 只用来判断这笔订单所属 project 是不是要被排除
   grand_total:       "grand_total",
@@ -633,6 +635,7 @@ async function fetchDashboardData(filters){
       [COLUMN_MAP.order_no]: "oxm2-" + r[COLUMN_MAP.order_no],
       [COLUMN_MAP.order_date]: r[COLUMN_MAP.order_date],
       [COLUMN_MAP.grand_total]: r[COLUMN_MAP.grand_total],
+      _calendarDate: r[COLUMN_MAP.calendar_date],
       _brandName: brandNameOf(r[COLUMN_MAP.market_id]),
       _source: "oxm2",
     }))
@@ -647,6 +650,7 @@ async function fetchDashboardData(filters){
       [COLUMN_MAP.order_no]: "legacy-" + r[LEGACY_ORDER_COLUMN_MAP.order_no],
       [COLUMN_MAP.order_date]: r[LEGACY_ORDER_COLUMN_MAP.order_date],
       [COLUMN_MAP.grand_total]: r[LEGACY_ORDER_COLUMN_MAP.grand_total],
+      _calendarDate: r[LEGACY_ORDER_COLUMN_MAP.calendar_date],
       _brandName: legacyProjectIdToName[r[LEGACY_ORDER_COLUMN_MAP.project_id]] || "Unknown",
       _source: "legacy",
     }));
@@ -739,8 +743,20 @@ async function fetchDashboardData(filters){
     console.log("[legacy ads] 找不到对应 page 税率被挡掉（page_id → 被挡笔数）:", legacyAdsDebug.blockedByMissingPage);
   }
 
-  const currentRows = rows.filter(r => new Date(r[COLUMN_MAP.order_date]) >= startDate);
-  const prevRows = rows.filter(r => new Date(r[COLUMN_MAP.order_date]) < startDate);
+  // 补录挡掉：created_at/created_datetime 落在区间内不够——如果这笔单是「今天才补录进系统、
+  // 但订单实际发生在前几天」的旧单（order_date 的日历日不在这个区间跨的那几天里），也要挡掉，
+  // 不然一次批量补录就会把好几天前的旧单全部算进当前这个区间的 Total Sales 里。
+  function calendarDateInWindow(rawDate, windowStart, windowEnd){
+    if (!rawDate) return false;
+    const d = new Date(rawDate);
+    const lower = new Date(windowStart.getFullYear(), windowStart.getMonth(), windowStart.getDate());
+    const upperExclusive = new Date(windowEnd.getFullYear(), windowEnd.getMonth(), windowEnd.getDate() + 1);
+    return d >= lower && d < upperExclusive;
+  }
+  const currentRows = rows.filter(r => new Date(r[COLUMN_MAP.order_date]) >= startDate
+    && calendarDateInWindow(r._calendarDate, startDate, endExclusive));
+  const prevRows = rows.filter(r => new Date(r[COLUMN_MAP.order_date]) < startDate
+    && calendarDateInWindow(r._calendarDate, prevStart, startDate));
 
   const availableBrands = [...allBrandNames].sort();
 
