@@ -65,7 +65,7 @@ export const legacySync = schedules.task({
   // dashboard instead, delete this cron block and attach a schedule under
   // Schedules -> New schedule (same pattern), which can be edited in the UI.
   cron: {
-    pattern: "30 0-3,5-11,13-16,18-23 * * *",
+    pattern: "5,20,35,50 0-3,5-11,13-16,18-23 * * *",
     timezone: "Asia/Kuala_Lumpur",
   },
 
