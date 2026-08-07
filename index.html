@@ -370,9 +370,11 @@ const COLUMN_MAP = {
 };
 const TABLE_NAME = "ai_order";
 
-// market 表：只用来 join 出每个 market 属于哪个 brand
+// market 表：join 出每个 market 属于哪个 brand，country 用来判断这个 market 的订单是不是 SGD 计价的
 const MARKET_TABLE_NAME = "ai_market";
-const MARKET_COLUMN_MAP = { id: "id", brand_id: "brand_id" };
+const MARKET_COLUMN_MAP = { id: "id", brand_id: "brand_id", country: "country" };
+// SG market 的 grand_total 是 SGD，legacy_orders 那边本来就是 MYR，不用转
+const SGD_TO_MYR_RATE = 3.21;
 
 // brand 表：brand.name 就是 PRD 里的「项目 project」
 const BRAND_TABLE_NAME = "ai_brand";
@@ -614,14 +616,22 @@ async function fetchDashboardData(filters){
   if (legacyPageSstErr) { console.warn(`[fetch] ${LEGACY_PAGESST_TABLE} 查询失败，legacy Ads Spend 的税率会算不出来`, legacyPageSstErr); fetchErrors.push(LEGACY_PAGESST_TABLE); }
   if (legacyPageadErr) { console.warn(`[fetch] ${LEGACY_PAGEAD_TABLE} 查询失败，Ads Spend(legacy) 这部分会是空的`, legacyPageadErr); fetchErrors.push(LEGACY_PAGEAD_TABLE); }
 
-  // 建 market_id → brand_id → brand name 的对应关系（OXM2 用）
+  // 建 market_id → brand_id → brand name 的对应关系（OXM2 用），顺便记下哪些 market 是 SG（SGD 计价）
   const marketToBrandId = {};
-  for (const m of (rawMarketRows || [])) marketToBrandId[m[MARKET_COLUMN_MAP.id]] = m[MARKET_COLUMN_MAP.brand_id];
+  const sgdMarketIds = new Set();
+  for (const m of (rawMarketRows || [])){
+    marketToBrandId[m[MARKET_COLUMN_MAP.id]] = m[MARKET_COLUMN_MAP.brand_id];
+    if ((m[MARKET_COLUMN_MAP.country] || "").toUpperCase() === "SG") sgdMarketIds.add(m[MARKET_COLUMN_MAP.id]);
+  }
   const brandIdToName = {};
   for (const b of (rawBrandRows || [])) brandIdToName[b[BRAND_COLUMN_MAP.id]] = b[BRAND_COLUMN_MAP.name];
   function brandNameOf(marketId){
     const brandId = marketToBrandId[marketId];
     return (brandId && brandIdToName[brandId]) || "Unknown";
+  }
+  // ai_order.grand_total 在 SG market 底下是 SGD，legacy_orders 那边本来就是 MYR，不用转
+  function toMYR(marketId, amount){
+    return sgdMarketIds.has(marketId) ? amount * SGD_TO_MYR_RATE : amount;
   }
 
   // legacy_projects.id → project_name（OXM1 的「项目」名字，如果跟 ai_brand.name 同名会自动合并）
@@ -634,7 +644,7 @@ async function fetchDashboardData(filters){
     .map(r => ({
       [COLUMN_MAP.order_no]: "oxm2-" + r[COLUMN_MAP.order_no],
       [COLUMN_MAP.order_date]: r[COLUMN_MAP.order_date],
-      [COLUMN_MAP.grand_total]: r[COLUMN_MAP.grand_total],
+      [COLUMN_MAP.grand_total]: toMYR(r[COLUMN_MAP.market_id], Number(r[COLUMN_MAP.grand_total]) || 0),
       _calendarDate: r[COLUMN_MAP.calendar_date],
       _brandName: brandNameOf(r[COLUMN_MAP.market_id]),
       _source: "oxm2",
