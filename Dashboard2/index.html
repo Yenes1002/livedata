@@ -325,7 +325,7 @@ async function loadAll(){
 
   renderBlocks('kpi01', 'sec1-body', data.kpi01, it => pct(it.pct_growth));
   renderBlocks('kpi02', 'sec2-body', data.kpi02, it => rm(it.diff_rm));
-  renderBlocks('kpi03', 'sec3-body', data.kpi03, it => rm(it.aov));
+  renderBlocks('kpi03', 'sec3-body', data.kpi03, it => rm(it.top_order_amount));
   renderBlocks('kpi04', 'sec4-body', data.kpi04, it => rm(it.sales));
   renderBlocks('kpi05', 'sec5-body', data.kpi05, it => it.orders + ' 单');
   renderBlocks('kpi06', 'sec6-body', data.kpi06, it => rm(it.repeat_sales));
