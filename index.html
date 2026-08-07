@@ -286,23 +286,18 @@ function trendMeta(p){
   if (p < -0.05) return { icon:"▼", cls:"down", text: `${p.toFixed(1)}%` };
   return { icon:"—", cls:"flat", text:"No Change" };
 }
-function todayStr(offset=0){
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
-  const pad = n => String(n).padStart(2,"0");
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; // 本地日期，不用 toISOString()（那个是 UTC，本地时间跟 UTC 差几小时会跑错日期）
-}
-// 给 <input type="datetime-local"> 用：本地时区的 "YYYY-MM-DDTHH:MM"（不能用 toISOString，那个是 UTC 会跑掉）
-function nowLocalDatetimeStr(){
-  const d = new Date();
-  const pad = n => String(n).padStart(2,"0");
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 // 给 Postgres 的 TIMESTAMP（不带时区）欄位查询用：直接照本地时间的数字组字符串，
 // 不能用 .toISOString()——那个会先转成 UTC，本地时间跟 UTC 差几小时，查询窗口就会跟着偏移
+// legacy_orders.created_datetime 就是这种「没带时区，存的就是马来西亚本地时间」的欄位，直接用这个。
 function toNaiveTimestampString(date){
   const pad = n => String(n).padStart(2,"0");
   return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+// 给 ai_order.created_at 这种 timestamptz 欄位查询用：跟上面同样取本地时间的数字，
+// 但要带上明确的 +08:00，不然 PostgREST 会拿它自己的 session 时区（UTC）去解释这串没带时区的文字，
+// 整个查询窗口会偏移 8 小时，边界附近的订单就会被算错区间。
+function toMYTOffsetTimestampString(date){
+  return toNaiveTimestampString(date) + "+08:00";
 }
 // 给 DATE 欄位查询用：同理，取本地日期，不要用 toISOString().slice(0,10)
 function toLocalDateString(date){
@@ -366,7 +361,7 @@ function genDemoOverall(projects){
    ===================================================================== */
 const COLUMN_MAP = {
   order_no:        "order_no",
-  order_date:      "order_date",       // timestamp
+  order_date:      "created_at",        // timestamptz，UTC+0 存的，查询边界要带 +08:00（见 toMYTOffsetTimestampString）
   market_id:       "market_id",        // 用来 join market → brand，也用来跟 ai_expenses_entry 的 market_id 对应算 Ads Spent
   grand_total:     "grand_total",
   order_status:    "order_status",
@@ -410,16 +405,15 @@ function expenseAmount(row){
 
 /* =====================================================================
    LEGACY (OXM1) — legacy_orders 也要合进 Total Sales。
-   分组维度是 Project Name（不是 merchant），时间用 order_date，跟 OXM2 的口径统一
-   （之前用过 created_datetime——订单录入系统的时间，跟 order_date 对不上，同一天的
-   数字对不上手动核对的 SQL，改成 order_date 后两边口径一致）。
+   分组维度是 Project Name（不是 merchant）。活动区间现在是写死的 7/8 13:00 – 8/8 13:00
+   （精确到时分），时间字段用 created_datetime（订单创建的确切时刻）。
    merchant 只用来判断 workspace 白名单，不参与显示/分组。
    排除规则：project_name = "Offline" 的、is_active 不是 true 的 project/page，都不算。
    ===================================================================== */
 const LEGACY_ORDERS_TABLE = "legacy_orders";
 const LEGACY_ORDER_COLUMN_MAP = {
   order_no:          "order_no",
-  order_date:        "order_date",        // Total Sales / Total Orders 用这个时间字段，跟 OXM2 统一口径
+  order_date:        "created_datetime",  // timestamp（不带时区，存的就是马来西亚本地时间），Total Sales / Total Orders 用这个
   merchant_id:       "merchant_id",
   project_id:        "project_id",        // 只用来判断这笔订单所属 project 是不是要被排除
   grand_total:       "grand_total",
@@ -517,10 +511,12 @@ function isOxm2BrandAllowed(name){
 }
 
 /* =====================================================================
-   DATE RANGE — 不再有可交互的筛选器，固定「MTD」：8/1 到今天，每天自动往前走
+   DATE RANGE — 不是 MTD，是写死的活动区间：
+   2026-07-08 13:00:00 至 2026-08-08 13:00:00，马来西亚时间（UTC+8）
    ===================================================================== */
-const PERIOD_START = "2026-08-01";
-let currentFilters = { start: PERIOD_START, end: todayStr(), project: "all" };
+const CAMPAIGN_START = new Date("2026-07-08T13:00:00+08:00");
+const CAMPAIGN_END   = new Date("2026-08-08T13:00:00+08:00");
+let currentFilters = { project: "all" };
 
 /* ---------------------------------------------------------------------
    DATA FETCH — 支持日期范围筛选 + 项目筛选
@@ -537,16 +533,14 @@ async function fetchDashboardData(filters){
     return { overallToday, overallYesterday, projects, availableBrands, series };
   }
 
-  // filters.start / filters.end 现在是纯日期字符串 "YYYY-MM-DD"，不看时间点，涵盖 end 当天整天
-  const startDate = new Date(filters.start + "T00:00:00");
-  const endExclusive = new Date(filters.end + "T00:00:00");
-  endExclusive.setDate(endExclusive.getDate() + 1); // 涵盖 end 当天整天，到隔天 0 点为止（不含）
+  const startDate = CAMPAIGN_START;
+  const endExclusive = CAMPAIGN_END;
 
   // 上一个「等长」周期，紧接在 startDate 之前，用来算涨跌趋势
   const rangeMs = endExclusive - startDate;
   const prevStart = new Date(startDate.getTime() - rangeMs);
   const prevStartDateStr = toLocalDateString(prevStart);
-  const endDateStr = filters.end; // 给 ai_expenses_entry 的 entry_date（DATE 类型）用
+  const endDateStr = toLocalDateString(endExclusive); // 给 ai_expenses_entry 的 entry_date（DATE 类型）用
 
   /* ---------------------------------------------------------------------
      分页拉取工具：每一页都从 supabaseClient.from(table) 重新建一个全新的
@@ -587,7 +581,7 @@ async function fetchDashboardData(filters){
     { data: rawLegacyPagead, error: legacyPageadErr },
   ] = await Promise.all([
     fetchAllRows(TABLE_NAME, [COLUMN_MAP.order_date, "id"], q => {
-      q = q.gte(COLUMN_MAP.order_date, toNaiveTimestampString(prevStart)).lt(COLUMN_MAP.order_date, toNaiveTimestampString(endExclusive));
+      q = q.gte(COLUMN_MAP.order_date, toMYTOffsetTimestampString(prevStart)).lt(COLUMN_MAP.order_date, toMYTOffsetTimestampString(endExclusive));
       if (VALID_PAYMENT_STATUSES.length) q = q.in(COLUMN_MAP.payment_status, VALID_PAYMENT_STATUSES);
       return q;
     }),
@@ -676,7 +670,7 @@ async function fetchDashboardData(filters){
   // 两个来源合并成一份，下面所有统计逻辑都不用再区分来源；顺便把排除名单里的品牌也踢掉
   const rows = [...oxm2Rows, ...legacyRows].filter(r => !isExcludedBrand(r._brandName));
 
-  const startDateStr = filters.start.slice(0,10); // 纯 DATE 字段（entry_date / legacy_pagead.date）都用日期部分比较
+  const startDateStr = toLocalDateString(CAMPAIGN_START); // 纯 DATE 字段（entry_date / legacy_pagead.date）都用日期部分比较
 
   // legacy Ads Spent —— 算法跟之前一样，只是税率来源从 legacy_page 换成了 legacy_pagesst：
   //   1. project 直接用 legacy_pagead.project_id → legacy_projects.project_name（不绕道 page 表）
@@ -694,11 +688,17 @@ async function fetchDashboardData(filters){
       withholding: Number(p[LEGACY_PAGESST_COLUMN_MAP.witholding_tax_percentage]) || 0,
     });
   }
-  // channel_id（= page_id）+ 广告花费当天的日期，找落在哪个税率区间里
+  // channel_id（= page_id）+ 广告花费当天的日期，找落在哪个税率区间里。
+  // 找不到覆盖当天的区间（legacy 后台税率区间维护跟不上，最新一段已经过期还没补新的）时，
+  // 退回用这个渠道最近一段（哪怕已过期）的税率去估算，好过直接把这笔广告花费整笔漏算——
+  // 之前就是这样漏掉的：Mformula 等好几个项目的渠道税率区间在 2026 年初就到期了，
+  // 8 月的花费因为找不到精确覆盖的区间被整笔跳过，Ads Spent 少算了一大截。
   function sstTaxFor(channelId, dateStr){
     const periods = legacyPageSstPeriodsByChannel[channelId];
     if (!periods) return null;
-    return periods.find(p => dateStr >= p.start && dateStr <= p.end) || null;
+    const exact = periods.find(p => dateStr >= p.start && dateStr <= p.end);
+    if (exact) return exact;
+    return periods.reduce((latest, p) => (!latest || p.end > latest.end) ? p : latest, null);
   }
   function aggregateLegacyAdsSpendByBrand(pageadRows, debugStats){
     const map = {};
@@ -1158,14 +1158,13 @@ function fmtPeriodDate(dateStr){
 async function refreshDashboard(){
   const myToken = ++latestRefreshToken;
   try{
-    currentFilters.end = todayStr(); // 固定 MTD：起点不变，终点每天自动跟着走到今天
     const data = await fetchDashboardData(currentFilters);
     if (myToken !== latestRefreshToken) return; // 这期间已经有更新的刷新发生了，这次的结果作废，不画
     renderKPIGrid(data.overallToday, data.overallYesterday, data.series);
     renderRankingSection(data.projects);
     renderTable(data.projects);
     document.getElementById("periodLabel").textContent =
-      `${fmtPeriodDate(currentFilters.start)} – ${fmtPeriodDate(currentFilters.end)}`;
+      `${fmtPeriodDate(toLocalDateString(CAMPAIGN_START))} – ${fmtPeriodDate(toLocalDateString(CAMPAIGN_END))}`;
     document.getElementById("fetchErrorBanner").textContent =
       (data.fetchErrors && data.fetchErrors.length) ? `⚠ 查询失败: ${data.fetchErrors.join(", ")}（看 Console 详情）` : "";
     document.getElementById("lastRefresh").textContent = new Date().toLocaleTimeString("en-MY", {hour12:false});
