@@ -405,7 +405,7 @@ function expenseAmount(row){
 
 /* =====================================================================
    LEGACY (OXM1) — legacy_orders 也要合进 Total Sales。
-   分组维度是 Project Name（不是 merchant）。活动区间现在是写死的 7/8 13:00 – 8/8 13:00
+   分组维度是 Project Name（不是 merchant）。活动区间现在是写死的 8/7 13:00 – 8/8 13:00
    （精确到时分），时间字段用 created_datetime（订单创建的确切时刻）。
    merchant 只用来判断 workspace 白名单，不参与显示/分组。
    排除规则：project_name = "Offline" 的、is_active 不是 true 的 project/page，都不算。
@@ -512,9 +512,9 @@ function isOxm2BrandAllowed(name){
 
 /* =====================================================================
    DATE RANGE — 不是 MTD，是写死的活动区间：
-   2026-07-08 13:00:00 至 2026-08-08 13:00:00，马来西亚时间（UTC+8）
+   2026-08-07 13:00:00 至 2026-08-08 13:00:00，马来西亚时间（UTC+8）
    ===================================================================== */
-const CAMPAIGN_START = new Date("2026-07-08T13:00:00+08:00");
+const CAMPAIGN_START = new Date("2026-08-07T13:00:00+08:00");
 const CAMPAIGN_END   = new Date("2026-08-08T13:00:00+08:00");
 let currentFilters = { project: "all" };
 
@@ -543,29 +543,29 @@ async function fetchDashboardData(filters){
   const endDateStr = toLocalDateString(endExclusive); // 给 ai_expenses_entry 的 entry_date（DATE 类型）用
 
   /* ---------------------------------------------------------------------
-     分页拉取工具：每一页都从 supabaseClient.from(table) 重新建一个全新的
-     query builder（不重用已经 await 过的实例），固定 order by id 保证分页
-     顺序稳定、不重复、不漏资料，直到某一页拿到的笔数 < PAGE_SIZE 才停止。
+     分页拉取工具：用 id 做 keyset 分页（`id > 上一页最后一个 id`），不用 .range() 的
+     offset 分页——活动区间现在是一整个月，legacy_orders 这种两百万行的表用 offset 翻到
+     后面几页，Postgres 要先扫过并丢掉前面全部的行，翻到第十几页就整个 statement timeout，
+     导致 dashboard 直接空白。keyset 分页靠 id 索引直接定位到下一页起点，翻多少页都一样快。
   --------------------------------------------------------------------- */
   const PAGE_SIZE = 1000;
-  async function fetchAllRows(table, orderColumns, applyFilters){
-    const orderCols = Array.isArray(orderColumns) ? orderColumns : [orderColumns];
+  async function fetchAllRows(table, idColumn, applyFilters){
     let all = [];
-    let from = 0;
+    let lastId = null;
     while (true){
       let q = applyFilters(supabaseClient.from(table).select("*"));
-      for (const col of orderCols) q = q.order(col, { ascending: true });
-      q = q.range(from, from + PAGE_SIZE - 1);
+      if (lastId !== null) q = q.gt(idColumn, lastId);
+      q = q.order(idColumn, { ascending: true }).limit(PAGE_SIZE);
       const { data, error } = await q;
       if (error){
         // 把完整的 error 对象展开打印（不要折叠），方便看到 message / code / details / hint
-        console.error(`[fetch] ${table} 第 ${from}-${from+PAGE_SIZE-1} 页查询失败：`, JSON.stringify(error, null, 2), error);
+        console.error(`[fetch] ${table} 从 ${idColumn}>${lastId} 开始查询失败：`, JSON.stringify(error, null, 2), error);
         return { data: all, error }; // 已经拿到的页数先留着，不整批作废
       }
       if (!data || data.length === 0) break;
       all = all.concat(data);
+      lastId = data[data.length - 1][idColumn];
       if (data.length < PAGE_SIZE) break; // 这页没拿满，说明已经是最后一页
-      from += PAGE_SIZE;
     }
     return { data: all, error: null };
   }
@@ -580,23 +580,23 @@ async function fetchDashboardData(filters){
     { data: rawLegacyPageSst, error: legacyPageSstErr },
     { data: rawLegacyPagead, error: legacyPageadErr },
   ] = await Promise.all([
-    fetchAllRows(TABLE_NAME, [COLUMN_MAP.order_date, "id"], q => {
+    fetchAllRows(TABLE_NAME, "id", q => {
       q = q.gte(COLUMN_MAP.order_date, toMYTOffsetTimestampString(prevStart)).lt(COLUMN_MAP.order_date, toMYTOffsetTimestampString(endExclusive));
       if (VALID_PAYMENT_STATUSES.length) q = q.in(COLUMN_MAP.payment_status, VALID_PAYMENT_STATUSES);
       return q;
     }),
-    fetchAllRows(EXPENSE_TABLE_NAME, [EXPENSE_COLUMN_MAP.entry_date, "id"], q => q
+    fetchAllRows(EXPENSE_TABLE_NAME, "id", q => q
       .eq(EXPENSE_COLUMN_MAP.expense_type_id, ADS_SPEND_EXPENSE_TYPE_ID)
       .gte(EXPENSE_COLUMN_MAP.entry_date, prevStartDateStr)
       .lte(EXPENSE_COLUMN_MAP.entry_date, endDateStr)),
     fetchAllRows(MARKET_TABLE_NAME, "id", q => q),
     fetchAllRows(BRAND_TABLE_NAME, "id", q => q),
-    fetchAllRows(LEGACY_ORDERS_TABLE, [LEGACY_ORDER_COLUMN_MAP.order_date, "id"], q => q
+    fetchAllRows(LEGACY_ORDERS_TABLE, "id", q => q
       .gte(LEGACY_ORDER_COLUMN_MAP.order_date, toNaiveTimestampString(prevStart))
       .lt(LEGACY_ORDER_COLUMN_MAP.order_date, toNaiveTimestampString(endExclusive))),
     fetchAllRows(LEGACY_PROJECTS_TABLE, "id", q => q),
     fetchAllRows(LEGACY_PAGESST_TABLE, "id", q => q),
-    fetchAllRows(LEGACY_PAGEAD_TABLE, [LEGACY_PAGEAD_COLUMN_MAP.date, "id"], q => q
+    fetchAllRows(LEGACY_PAGEAD_TABLE, "id", q => q
       .gte(LEGACY_PAGEAD_COLUMN_MAP.date, prevStartDateStr)
       .lte(LEGACY_PAGEAD_COLUMN_MAP.date, endDateStr)),
   ]);
