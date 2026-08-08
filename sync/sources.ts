@@ -36,6 +36,7 @@ export const SOURCES: SourceSpec[] = [
       { source: "MerchantProjectPageAd", target: "legacy_pagead", where: "date >= '2026-07-26'" },
       { source: "Customer", target: "legacy_customer" },
       { source: "MerchantProjectPageOrder", target: "legacy_orders" },
+      { source: "UserDraftOrder", target: "legacy_draftorders" }
     ],
   },
 
