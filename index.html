@@ -526,6 +526,13 @@ function isOxm2BrandAllowed(name){
    ===================================================================== */
 const CAMPAIGN_START = new Date("2026-08-07T13:00:00+08:00");
 const CAMPAIGN_END   = new Date("2026-08-08T13:00:00+08:00");
+// ILady 单独多算 30 分钟，到 13:30 截止；其他项目还是原本的 13:00
+const ILADY_EXTENDED_END = new Date("2026-08-08T13:30:00+08:00");
+// 手动加进去的 Total Sales，不对应任何具体订单，跟现有算出来的数字加在一起
+const MANUAL_SALES_ADJUSTMENTS = {
+  "Recovit": 24248.00,
+  "NINOKO3in1Kidzzz": 64851.00,
+};
 let currentFilters = { project: "all" };
 
 /* ---------------------------------------------------------------------
@@ -545,6 +552,10 @@ async function fetchDashboardData(filters){
 
   const startDate = CAMPAIGN_START;
   const endExclusive = CAMPAIGN_END;
+  // 拉资料的上限要盖到 ILady 那多出来的 30 分钟，不然 Supabase 那边根本不会把
+  // 13:00-13:30 这段的订单捞回来；其他项目要用回 13:00 的话，靠下面 currentRows
+  // 那边逐行判断挡住，不是靠这个查询边界。
+  const fetchEndExclusive = new Date(Math.max(endExclusive.getTime(), ILADY_EXTENDED_END.getTime()));
 
   // 上一个「等长」周期，紧接在 startDate 之前，用来算涨跌趋势
   const rangeMs = endExclusive - startDate;
@@ -591,7 +602,7 @@ async function fetchDashboardData(filters){
     { data: rawLegacyPagead, error: legacyPageadErr },
   ] = await Promise.all([
     fetchAllRows(TABLE_NAME, "id", q => {
-      q = q.gte(COLUMN_MAP.order_date, toMYTOffsetTimestampString(prevStart)).lt(COLUMN_MAP.order_date, toMYTOffsetTimestampString(endExclusive));
+      q = q.gte(COLUMN_MAP.order_date, toMYTOffsetTimestampString(prevStart)).lt(COLUMN_MAP.order_date, toMYTOffsetTimestampString(fetchEndExclusive));
       if (VALID_PAYMENT_STATUSES.length) q = q.in(COLUMN_MAP.payment_status, VALID_PAYMENT_STATUSES);
       return q;
     }),
@@ -603,7 +614,7 @@ async function fetchDashboardData(filters){
     fetchAllRows(BRAND_TABLE_NAME, "id", q => q),
     fetchAllRows(LEGACY_ORDERS_TABLE, "id", q => q
       .gte(LEGACY_ORDER_COLUMN_MAP.order_date, toNaiveTimestampString(prevStart))
-      .lt(LEGACY_ORDER_COLUMN_MAP.order_date, toNaiveTimestampString(endExclusive))),
+      .lt(LEGACY_ORDER_COLUMN_MAP.order_date, toNaiveTimestampString(fetchEndExclusive))),
     fetchAllRows(LEGACY_PROJECTS_TABLE, "id", q => q),
     fetchAllRows(LEGACY_PAGESST_TABLE, "id", q => q),
     fetchAllRows(LEGACY_PAGEAD_TABLE, "id", q => q
@@ -769,8 +780,14 @@ async function fetchDashboardData(filters){
     const upperExclusive = new Date(windowEnd.getFullYear(), windowEnd.getMonth(), windowEnd.getDate() + 1);
     return d >= lower && d < upperExclusive;
   }
-  const currentRows = rows.filter(r => new Date(r[COLUMN_MAP.order_date]) >= startDate
-    && calendarDateInWindow(r._calendarDate, startDate, endExclusive));
+  // 拉资料时把上限放宽到了 fetchEndExclusive（盖住 ILady 多出来的 30 分钟），
+  // 所以这里一定要按每一行自己的品牌重新卡回真正该用的上限——ILady 用 13:30，
+  // 其他项目用回 13:00，不然 fetch 放宽出来的那 30 分钟会把别的项目也一起多算进去。
+  const currentRows = rows.filter(r => {
+    const rowEnd = r._brandName === "ILady" ? ILADY_EXTENDED_END : endExclusive;
+    const d = new Date(r[COLUMN_MAP.order_date]);
+    return d >= startDate && d < rowEnd && calendarDateInWindow(r._calendarDate, startDate, rowEnd);
+  });
   const prevRows = rows.filter(r => new Date(r[COLUMN_MAP.order_date]) < startDate
     && calendarDateInWindow(r._calendarDate, prevStart, startDate));
 
@@ -812,6 +829,12 @@ async function fetchDashboardData(filters){
     : (prevAdsByBrand[filters.project] || 0);
 
   const overallToday = aggregateOverall(filteredCurrentRows, overallCurrentAds);
+  // 大盘总数也要加上手动加的那几笔，不然最上面的 GMV 会比下面 table 加总起来的还少
+  if (filters.project === "all"){
+    overallToday.total_sales += Object.values(MANUAL_SALES_ADJUSTMENTS).reduce((a,v)=>a+v,0);
+  } else if (MANUAL_SALES_ADJUSTMENTS[filters.project]){
+    overallToday.total_sales += MANUAL_SALES_ADJUSTMENTS[filters.project];
+  }
   const overallYesterday = aggregateOverall(filteredPrevRows, overallPrevAds);
 
   const currentByBrand = aggregateByBrand(filteredCurrentRows);
@@ -822,7 +845,8 @@ async function fetchDashboardData(filters){
   // 遍历 master 清单（而不是只遍历「这段时间有数据」的品牌），保证没数据的项目也会显示出来，值是 0
   const projectNamesToShow = filters.project === "all" ? [...allBrandNames] : [filters.project];
   const projects = projectNamesToShow.map(name => {
-    const b = currentBrandMap[name] || { project_name: name, total_sales: 0, total_orders: 0, aov: 0, status: "active" };
+    const b = { ...(currentBrandMap[name] || { project_name: name, total_sales: 0, total_orders: 0, aov: 0, status: "active" }) };
+    if (MANUAL_SALES_ADJUSTMENTS[name]) b.total_sales += MANUAL_SALES_ADJUSTMENTS[name]; // 手动加的，不对应订单
     const y = prevBrandMap[name];
     const adsSpent = currentAdsByBrand[name] || 0;
     const prevAdsSpent = prevAdsByBrand[name] || 0;
