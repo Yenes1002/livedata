@@ -447,13 +447,14 @@ const LEGACY_PAGEAD_COLUMN_MAP = { id: "id", merchant_id: "merchant_id", project
 // 唯一权威名单：只要 project_id 在这里面的 legacy project 才算数——Sales 和 Ads Spend 都用这一份，
 // 两边标准统一，不会再出现"Sales 有这个项目但 Ads Spend 没有"这种对不上的情况。
 // 就算某个 project 在这段时间没有任何 Sales/Ads 数据，只要 id 在这份名单里，也一定会显示出来（数字是 0）。
-// ILady（148、1787）不在这份名单里了——ILady 改成从 OXM2（ai_brand）拉数据，不再用 legacy 的这两个 project
+// ILady 改回来用 legacy 了：148（ILADY，唯一还在动的）、594（ILADY O2O）、
+// 1578（ILADY YRDZ）、1787（iLady【II】，3 天前还有单）
 const LEGACY_ALLOWED_PROJECT_IDS = [
   1160,570,1708,1416,527,186,125,1797,1770,
   1769,1759,1600,242,1541,1426,27,1239,793,
   1478,1756,1504,32,1040,798,707,45,929,660,
   708,1166,146,222,1165,1784,832,1540,1368,160,1408,
-  1620,1796,1822,752,1577,
+  1620,1796,1822,752,1577,148,594,1578,1787,
 ];
 
 // 不管从哪个来源（OXM2/legacy）算出来的，只要品牌名是这些，整个排除掉，不进任何统计
@@ -485,6 +486,11 @@ const PROJECT_NAME_ALIAS_MAP = {
   "dsw - sg": "Dr Smile",
   "dsw-eng": "Dr Smile",
   "guthealth": "Funffy",
+  "naturelish essencare recovery": "Recovit",
+  "ilady": "ILady",
+  "ilady o2o": "ILady",
+  "ilady yrdz": "ILady",
+  "ilady 【ii】": "ILady",
   "kata my": "KATA",
   "kata sg": "KATA",
   "scalegem knee series": "Scalegem",
@@ -506,10 +512,9 @@ function classifyBrand(brandName){
 }
 
 // OXM2（ai_brand）只要这几个品牌，其他 ai_brand 一律不显示（legacy 的项目不受这份名单影响）
-// Kata Marine 是后加的：核对时发现它在 ai_order 里已经有真实且持续增长的订单（84 笔 RM44,964），
-// 之前不在名单里会被整个隐藏掉
-// ILady 也是后加的：原本从 legacy（project_id 148、1787）拉，现在改成从 OXM2 拉（ai_brand.name = "ILady"）
-const OXM2_ALLOWED_BRAND_NAMES = ["Skindae", "Masternerve", "Beyoute", "Kidsaie", "Agepros", "URO360", "Livact", "Eternergy+", "Kata Marine", "ILady"];
+// Kata Marine 不要了，整个拿掉。
+// ILady 也改回去了：短暂改成从 OXM2 拉过，现在改回 legacy（等确定用哪个 project_id 再加回 LEGACY_ALLOWED_PROJECT_IDS）
+const OXM2_ALLOWED_BRAND_NAMES = ["Skindae", "Masternerve", "Beyoute", "Kidsaie", "Agepros", "URO360", "Livact", "Eternergy+"];
 function isOxm2BrandAllowed(name){
   const norm = (name || "").trim().toLowerCase();
   return OXM2_ALLOWED_BRAND_NAMES.some(b => b.toLowerCase() === norm);
