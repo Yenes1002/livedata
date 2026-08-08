@@ -13,7 +13,7 @@
     "doctor": "tsx test/doctor.mts"
   },
   "dependencies": {
-    "@trigger.dev/sdk": "4.5.9",
+    "@trigger.dev/sdk": "4.5.10",
     "mysql2": "^3.15.3",
     "pg": "^8.16.3"
   },
